@@ -1,0 +1,68 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background: #222;
+    color: #eee;
+    margin: 0;
+    padding: 0;
+  }
+  
+  #game-container {
+    position: relative; 
+    max-width: 600px; /* Canvas blir 600x800 */
+    margin: 0 auto;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 20px;
+    border-radius: 10px;
+    margin-top: 30px;
+  }
+  
+  h1 {
+    margin: 0 0 20px 0;
+  }
+  
+  #gameCanvas {
+    display: block;
+    margin: 0 auto;
+    border: 2px solid #fff;
+    background: #4CAF50; /* Gress */
+    width: 600px; 
+    height: 800px;
+  }
+  
+  #description {
+    margin-top: 15px;
+    font-size: 14px;
+  }
+  
+  #messageOverlay {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    
+    visibility: hidden;
+    opacity: 0;
+  
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 20px 30px;
+    border-radius: 10px;
+    transition: opacity 0.3s ease;
+    font-size: 18px;
+    max-width: 300px;
+    text-align: center;
+    z-index: 999;
+  }
+  
+  #messageOverlay.show {
+    visibility: visible;
+    opacity: 1;
+  }
+  
+  #scoreDisplay {
+    font-size: 16px;
+    color: #ffcc00;
+    margin-top: 5px;
+  }
+  

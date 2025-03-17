@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hvem tar nøklene?</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+        #game-container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        button {
+            display: block;
+            width: 100%;
+            margin: 10px 0;
+            padding: 10px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <h2 id="story">Du er på en fest. Klokken er 02:00, og du skal hjem. Hva gjør du?</h2>
+        <button onclick="choose('kjore')">Kjør hjem selv</button>
+        <button onclick="choose('taxi')">Ta en taxi</button>
+        <button onclick="choose('venn')">Be en edru venn kjøre</button>
+    </div>
+    <script>
+        function choose(option) {
+            let story = document.getElementById("story");
+            let buttons = document.getElementById("game-container");
+            
+            if (option === 'kjore') {
+                story.innerHTML = "Du setter deg i bilen og begynner å kjøre. Synet ditt er uklart og reaksjonene dine er trege. Plutselig mister du kontrollen og krasjer. Du våkner på sykehuset... <br><br><b>GAME OVER</b>";
+            } else if (option === 'taxi') {
+                story.innerHTML = "Du bestiller en taxi og kommer trygt hjem. Dagen etter våkner du opp uten bekymringer, og du unngikk en livsfarlig situasjon. <br><br><b>DU VANT!</b>";
+            } else if (option === 'venn') {
+                story.innerHTML = "Vennen din kjører deg trygt hjem. Dere snakker om hvor mange som tar sjanser i trafikken. Du føler deg stolt over å ha gjort det riktige valget. <br><br><b>DU VANT!</b>";
+            }
+            
+            let buttonsList = document.querySelectorAll("button");
+            buttonsList.forEach(button => button.style.display = "none");
+        }
+    </script>
+</body>
+</html>
