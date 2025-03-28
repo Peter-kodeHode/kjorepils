@@ -1,0 +1,8 @@
+1. Lage graphics: biler, øl, grafisk "progress bar" på promille
+2. Endre kode så grafikken laster inn
+3. 4 felts vei, to motgående to samme vei
+4. Endre den sjanglete kjøringen til mer realistisk
+5. Legge til flere spørsmål. Må forekomme hyppigere.
+6. Introduksjonstekst før man starter spillet
+7. Gjøre at distansen øker fortere
+8. Game over screen som er i spillet og ikke i windows promt.
