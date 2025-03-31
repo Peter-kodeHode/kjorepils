@@ -12,21 +12,21 @@ class Game {
                 laneWidth: this.canvas.width * 0.25
             },
             player: {
-                width: 30,
-                height: 50,
+                width: 50,
+                height: 70,
                 speed: 5,
                 startY: this.canvas.height - 100,
                 maxLives: 5
             },
             obstacles: {
                 car: {
-                    width: 30,
-                    height: 50,
+                    width: 50,
+                    height: 70,
                     speed: { left: 6, middle: 4, right: 3 }
                 },
                 bottle: {
-                    width: 15,
-                    height: 30,
+                    width: 30,
+                    height: 50,
                     speed: 3
                 },
                 spawnRate: 0.03,
