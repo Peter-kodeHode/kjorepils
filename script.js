@@ -14,7 +14,7 @@ class Game {
             player: {
                 width: 50,
                 height: 70,
-                speed: 5,
+                speed: 10,
                 startY: this.canvas.height - 100,
                 maxLives: 5
             },
@@ -22,12 +22,12 @@ class Game {
                 car: {
                     width: 50,
                     height: 70,
-                    speed: { left: 6, middle: 4, right: 3 }
+                    speed: { left: 10, middle: 7, right: 5 }
                 },
                 bottle: {
                     width: 30,
                     height: 50,
-                    speed: 3
+                    speed: 5
                 },
                 spawnRate: 0.03,
                 bottleSpawnRate: 0.01
