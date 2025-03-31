@@ -6,3 +6,4 @@
 6. Introduksjonstekst før man starter spillet
 7. Gjøre at distansen øker fortere
 8. Game over screen som er i spillet og ikke i windows promt.
+9. MOBILE PRIO

@@ -203,7 +203,7 @@ class Game {
         if (this.state.startTime) {
             const now = Date.now();
             const elapsedTime = (now - this.state.startTime) / 1000;
-            this.state.distance = (elapsedTime * 0.02).toFixed(1);
+            this.state.distance = (elapsedTime * 0.30).toFixed(1);
         }
 
         this.spawnObstacle();
