@@ -84,6 +84,8 @@ class Game {
         this.images.obstacleCars.right.src = 'images/green-car.png';
         this.images.bottle.src = 'images/bottle.png';
 
+
+        
         this.initEventListeners();
         this.gameLoop();
     }
@@ -111,19 +113,16 @@ class Game {
             }
         });
 
-        let touchStartX = 0;
         this.canvas.addEventListener('touchstart', (e) => {
-            touchStartX = e.touches[0].clientX;
-        });
-
-        this.canvas.addEventListener('touchmove', (e) => {
-            if(!this.state.active || this.state.paused) return;
-            const touchEndX = e.touches[0].clientX;
-            const delta = touchEndX - touchStartX;
-            this.movePlayer(delta > 0 ? 1 : -1);
-            touchStartX = touchEndX;
+            if (!this.state.active || this.state.paused) return;
+            const rect = this.canvas.getBoundingClientRect();
+            const touchX = e.touches[0].clientX - rect.left;
+            this.moveToLane(
+                touchX < this.config.road.middleLane ? 'left' :
+                touchX < this.config.road.rightLane ? 'middle' : 'right'
+            );
             e.preventDefault();
-        });
+        }, { passive: false });
 
         document.getElementById('startBtn').addEventListener('click', () => {
             this.state.active = true;
@@ -144,6 +143,47 @@ class Game {
             this.config.road.rightLane = this.canvas.width * 0.60;
             this.config.road.laneWidth = this.canvas.width * 0.25;
         });
+
+        // Add mouse/touchpad support
+    this.canvas.addEventListener('click', (e) => {
+        if (!this.state.active || this.state.paused) return;
+        
+        // Get click position relative to canvas
+        const rect = this.canvas.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        
+        // Determine target lane based on click position
+        if (clickX < this.config.road.middleLane) {
+            this.moveToLane('left');
+        } else if (clickX < this.config.road.rightLane) {
+            this.moveToLane('middle');
+        } else {
+            this.moveToLane('right');
+        }
+    });
+// Add touchpad/mouse move support (for laptops)
+this.canvas.addEventListener('mousemove', (e) => {
+    if (!this.state.active || this.state.paused) return;
+    
+    const rect = this.canvas.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    
+    // Only respond if mouse is in lower half of screen (driving area)
+    if (mouseY > this.canvas.height / 2) {
+        this.state.player.targetX = Math.max(
+            this.config.road.leftLane,
+            Math.min(
+                mouseX - this.config.player.width / 2,
+                (this.config.road.rightLane + this.config.road.laneWidth) - this.config.player.width
+            )
+        );
+    }
+});
+
+    
+
+
     }
 
     movePlayer(direction) {
@@ -200,10 +240,25 @@ class Game {
     update() {
         if(!this.state.active || this.state.paused) return;
 
-        if (this.state.startTime) {
-            const now = Date.now();
-            const elapsedTime = (now - this.state.startTime) / 1000;
-            this.state.distance = (elapsedTime * 0.30).toFixed(1);
+ {
+            // ... (keep your existing update code until the distance calculation)
+        
+            // Smoother speed increase based on promille
+            const baseSpeed = 0.02; // Base speed multiplier
+            const drunkSpeedBonus = 0.05; // Max additional speed when drunk
+            const smoothPromilleEffect = Math.min(1, this.state.player.promille / 5); // Scales 0-1
+            
+            // Current speed (lerps between base and max speed)
+            const currentSpeed = baseSpeed + (drunkSpeedBonus * smoothPromilleEffect);
+            
+            // Calculate distance
+            if (this.state.startTime) {
+                const now = Date.now();
+                const elapsedTime = (now - this.state.startTime) / 1000;
+                this.state.distance = (elapsedTime * currentSpeed).toFixed(1);
+            }
+            
+            // ... (rest of your update code)
         }
 
         this.spawnObstacle();
@@ -410,6 +465,24 @@ class Game {
         this.state.active = false;
         alert(`Game Over! Distanse: ${this.state.distance} km`);
         document.getElementById('startBtn').style.display = 'block';
+    }
+
+    moveToLane(lane) {
+        let targetX;
+        switch(lane) {
+            case 'left':
+                targetX = this.config.road.leftLane + (this.config.road.laneWidth / 2) - (this.config.player.width / 2);
+                break;
+            case 'middle':
+                targetX = this.config.road.middleLane + (this.config.road.laneWidth / 2) - (this.config.player.width / 2);
+                break;
+            case 'right':
+                targetX = this.config.road.rightLane + (this.config.road.laneWidth / 2) - (this.config.player.width / 2);
+                break;
+        }
+        
+        // Smooth movement (compatible with drunk movement effects)
+        this.state.player.targetX = targetX;
     }
 }
 
