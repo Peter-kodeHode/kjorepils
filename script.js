@@ -22,7 +22,7 @@ class Game {
                 car: {
                     width: 50,
                     height: 70,
-                    speed: { left: 10, middle: 7, right: 5 }
+                    speed: { left: 5, middle: 3, right: 2 }
                 },
                 bottle: {
                     width: 30,
@@ -124,7 +124,7 @@ class Game {
             );
             e.preventDefault();
         }, { passive: false });
-        
+
         this.canvas.addEventListener('touchmove', (e) => {
             if(!this.state.active || this.state.paused) return;
             const touchEndX = e.touches[0].clientX;
