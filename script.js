@@ -113,17 +113,19 @@ class Game {
             }
         });
 
+        let touchStartX = 0;
         this.canvas.addEventListener('touchstart', (e) => {
-            if (!this.state.active || this.state.paused) return;
-            const rect = this.canvas.getBoundingClientRect();
-            const touchX = e.touches[0].clientX - rect.left;
-            this.moveToLane(
-                touchX < this.config.road.middleLane ? 'left' :
-                touchX < this.config.road.rightLane ? 'middle' : 'right'
-            );
-            e.preventDefault();
-        }, { passive: false });
+            touchStartX = e.touches[0].clientX;
+        });
 
+        this.canvas.addEventListener('touchmove', (e) => {
+            if(!this.state.active || this.state.paused) return;
+            const touchEndX = e.touches[0].clientX;
+            const delta = touchEndX - touchStartX;
+            this.movePlayer(delta > 0 ? 1 : -1);
+            touchStartX = touchEndX;
+            e.preventDefault();
+        });
         document.getElementById('startBtn').addEventListener('click', () => {
             this.state.active = true;
             this.state.player.lives = 5;
@@ -179,12 +181,9 @@ this.canvas.addEventListener('mousemove', (e) => {
             )
         );
     }
+    this.state.player.targetX = targetX;
 });
-
-    
-
-
-    }
+ }
 
     movePlayer(direction) {
         const newTargetX = this.state.player.targetX + (this.config.player.speed * direction);
@@ -239,23 +238,18 @@ this.canvas.addEventListener('mousemove', (e) => {
 
     update() {
         if(!this.state.active || this.state.paused) return;
-
-   
             // Smoother speed increase based on promille
             const baseSpeed = 0.02; // Base speed multiplier
             const drunkSpeedBonus = 0.05; // Max additional speed when drunk
             const smoothPromilleEffect = Math.min(1, this.state.player.promille / 5); // Scales 0-1
-            
             // Current speed (lerps between base and max speed)
             const currentSpeed = baseSpeed + (drunkSpeedBonus * smoothPromilleEffect);
-            
             // Calculate distance
             if (this.state.startTime) {
                 const now = Date.now();
                 const elapsedTime = (now - this.state.startTime) / 1000;
                 this.state.distance = (elapsedTime * currentSpeed).toFixed(1);
             }
-            
                   this.spawnObstacle();
 
         this.state.obstacles.forEach(obs => obs.y += obs.speed);
