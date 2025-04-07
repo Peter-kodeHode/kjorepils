@@ -240,9 +240,7 @@ this.canvas.addEventListener('mousemove', (e) => {
     update() {
         if(!this.state.active || this.state.paused) return;
 
- {
-            // ... (keep your existing update code until the distance calculation)
-        
+   
             // Smoother speed increase based on promille
             const baseSpeed = 0.02; // Base speed multiplier
             const drunkSpeedBonus = 0.05; // Max additional speed when drunk
@@ -258,10 +256,7 @@ this.canvas.addEventListener('mousemove', (e) => {
                 this.state.distance = (elapsedTime * currentSpeed).toFixed(1);
             }
             
-            // ... (rest of your update code)
-        }
-
-        this.spawnObstacle();
+                  this.spawnObstacle();
 
         this.state.obstacles.forEach(obs => obs.y += obs.speed);
 
@@ -300,6 +295,9 @@ this.canvas.addEventListener('mousemove', (e) => {
         if(this.state.player.promille >= 10) {
             this.gameOver();
         }
+        
+
+ 
     }
 
     checkCollisions() {
