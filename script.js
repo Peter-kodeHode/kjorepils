@@ -97,6 +97,7 @@ class Game {
     }
 
     initEventListeners() {
+        
         document.addEventListener('keydown', (e) => {
             if(!this.state.active || this.state.paused) return;
             
@@ -112,12 +113,18 @@ class Game {
                 this.state.lastInputTime = now;
             }
         });
-
         let touchStartX = 0;
         this.canvas.addEventListener('touchstart', (e) => {
-            touchStartX = e.touches[0].clientX;
-        });
-
+            if (!this.state.active || this.state.paused) return;
+            const rect = this.canvas.getBoundingClientRect();
+            const touchX = e.touches[0].clientX - rect.left;
+            this.moveToLane(
+                touchX < this.config.road.middleLane ? 'left' :
+                touchX < this.config.road.rightLane ? 'middle' : 'right'
+            );
+            e.preventDefault();
+        }, { passive: false });
+        
         this.canvas.addEventListener('touchmove', (e) => {
             if(!this.state.active || this.state.paused) return;
             const touchEndX = e.touches[0].clientX;
@@ -126,6 +133,9 @@ class Game {
             touchStartX = touchEndX;
             e.preventDefault();
         });
+
+        
+
         document.getElementById('startBtn').addEventListener('click', () => {
             this.state.active = true;
             this.state.player.lives = 5;
@@ -181,9 +191,7 @@ this.canvas.addEventListener('mousemove', (e) => {
             )
         );
     }
-    this.state.player.targetX = targetX;
-});
- }
+});   }
 
     movePlayer(direction) {
         const newTargetX = this.state.player.targetX + (this.config.player.speed * direction);
