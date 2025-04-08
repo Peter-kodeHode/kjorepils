@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8"> <!-- Character encoding -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"> <!-- Responsive viewport -->
+    <title>Kjørepils</title> <!-- Page title -->
+    <link rel="stylesheet" href="styles.css"> <!-- External CSS file -->
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas> <!-- Main game canvas -->
+        <div id="stats"></div> <!-- Display for distance, lives, and promille -->
+        <button id="startBtn" class="btn">Start spill</button> <!-- Start button -->
+        <div id="questionPopup">
+            <p id="questionText"></p> <!-- Question text displayed here -->
+            <button id="answer1" class="btn"></button> <!-- First answer button -->
+            <button id="answer2" class="btn"></button> <!-- Second answer button -->
+        </div>
+    </div>
+    <script src="script.js"></script> <!-- External JavaScript file -->
+</body>
+</html>

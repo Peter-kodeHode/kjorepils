@@ -1,22 +1,101 @@
 <!DOCTYPE html>
 <html lang="no">
 <head>
-    <meta charset="UTF-8"> <!-- Character encoding -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"> <!-- Responsive viewport -->
-    <title>Kjørepils</title> <!-- Page title -->
-    <link rel="stylesheet" href="styles.css"> <!-- External CSS file -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Kjørepils</title>
+  <link rel="stylesheet" href="styles.css" />
+  <!-- p5.js og p5.sound fra CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.6.0/lib/p5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.6.0/lib/addons/p5.sound.min.js"></script>
 </head>
 <body>
-    <div id="gameContainer">
-        <canvas id="gameCanvas"></canvas> <!-- Main game canvas -->
-        <div id="stats"></div> <!-- Display for distance, lives, and promille -->
-        <button id="startBtn" class="btn">Start spill</button> <!-- Start button -->
-        <div id="questionPopup">
-            <p id="questionText"></p> <!-- Question text displayed here -->
-            <button id="answer1" class="btn"></button> <!-- First answer button -->
-            <button id="answer2" class="btn"></button> <!-- Second answer button -->
-        </div>
+  <div id="loadingMessage">Laster lyder ♪ ...</div>
+  <div id="mainTitle">🚗Kjørepils🍻</div>
+  <div id="startScreen" style="display: none;">
+    <div class="menuPanel">
+      <button class="menuBtn" id="startButton">🎮 Tutt og kjør!</button>
+      <button class="menuBtn" id="soberButton">🥸 Promillekalkulator</button>
+      <button class="menuBtn" id="settingsButton">⚙️ Innstillinger</button>
+      <button class="menuBtn" id="aboutButton">😎 Om spillet</button>
+      <button class="menuBtn" id="youthButton">ℹ️ Ung i trafikken</button>
     </div>
-    <script src="script.js"></script> <!-- External JavaScript file -->
+  </div>
+
+  <!-- Spill-canvas for Game -->
+  <canvas id="gameCanvas"></canvas>
+  <!-- Game UI-elementer -->
+  <div id="gameUI">
+    <div id="stats"></div>
+    <button id="startBtn">Start på nytt</button>
+    <div id="questionPopup">
+      <p id="questionText"></p>
+      <button id="answer1"></button>
+      <button id="answer2"></button>
+    </div>
+  </div>
+
+  <!-- Modaler for promillekalkulator, om spillet, og innstillinger -->
+  <div id="soberModal">
+    <h2>Promillekalkulator 🍺⚖️</h2>
+    <p>Her kan du regne ut promillen basert på ulike alkoholtyper, kjønn, vekt og tid.</p>
+    <div id="drinksContainer">
+      <div class="drinkRow">
+        <label>Øl (0.33L, 4.5%):</label>
+        <input type="number" min="0" value="0" class="drinkInput" data-type="beer">
+      </div>
+      <div class="drinkRow">
+        <label>Sterkøl (0.5L, 6.5%):</label>
+        <input type="number" min="0" value="0" class="drinkInput" data-type="strongbeer">
+      </div>
+      <div class="drinkRow">
+        <label>Vin (1 glass, 12%):</label>
+        <input type="number" min="0" value="0" class="drinkInput" data-type="wine">
+      </div>
+      <div class="drinkRow">
+        <label>Sprit (4cl, 40%):</label>
+        <input type="number" min="0" value="0" class="drinkInput" data-type="spirits">
+      </div>
+      <div class="drinkRow">
+        <label>Rusbrus (0.33L, 4.7%):</label>
+        <input type="number" min="0" value="0" class="drinkInput" data-type="cooler">
+      </div>
+    </div>
+    <br>
+    <label for="weight">Vekt (kg):</label>
+    <input type="number" id="weight" min="30" value="70"><br><br>
+    <label for="gender">Kjønn:</label>
+    <select id="gender">
+      <option value="male">Mann</option>
+      <option value="female">Kvinne</option>
+    </select><br><br>
+    <label for="hours">Timer siden du sluttet å drikke:</label>
+    <input type="number" id="hours" min="0" value="1"><br><br>
+    <button class="menuBtn fancyBtn" onclick="calculateBAC()">Beregn promille</button>
+    <div id="bacVisual">
+      <div id="bacBar"></div>
+    </div>
+    <div id="bacEmoji">🙂</div>
+    <p id="bacResult"></p>
+    <button class="menuBtn fancyBtn" onclick="document.getElementById('soberModal').style.display='none'">🔙 Tilbake</button>
+  </div>
+
+  <div id="aboutModal">
+    <h2>Om oss 🧑💻</h2>
+    <p>Vi e best!<br><s>>Kontakt</s> Book oss på: PEDAL@kjørepils.no</p>
+    <button class="menuBtn" onclick="document.getElementById('aboutModal').style.display='none'">Lukk</button>
+  </div>
+
+  <div id="settingsMenu">
+    <label for="volumeSlider">📶 Volum:</label>
+    <input type="range" id="volumeSlider" min="0" max="100" value="50">
+    <br><br>
+    <button class="menuBtn" onclick="document.getElementById('settingsMenu').style.display='none'">Lukk</button>
+  </div>
+
+  <!-- Spilllogikk -->
+  <script src="script.js"></script>
+  <!-- Meny- og UI-logikk -->
+  <script src="meny.js"></script>
 </body>
 </html>
