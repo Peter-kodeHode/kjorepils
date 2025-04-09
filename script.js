@@ -111,45 +111,52 @@ class Game {
     }
 
     initEventListeners() {
-    // Tastatur: keydown setter flagg, keyup nullstiller flagg
-        document.addEventListener('keydown', (e) => {
-      if (!this.state.active || this.state.paused) return;
-      if (e.key === 'ArrowLeft') this.input.left = true;
-      if (e.key === 'ArrowRight') this.input.right = true;
-    });
-    document.addEventListener('keyup', (e) => {
-      if (!this.state.active || this.state.paused) return;
-      if (e.key === 'ArrowLeft') this.input.left = false;
-      if (e.key === 'ArrowRight') this.input.right = false;
-        });
-        let touchStartX = 0;
-        this.canvas.addEventListener('touchstart', (e) => {
-            if (!this.state.active || this.state.paused) return;
-            const rect = this.canvas.getBoundingClientRect();
-            const touchX = e.touches[0].clientX - rect.left;
-      this.moveToLane(touchX < this.config.road.middleLane ? 'left' :
-        touchX < this.config.road.rightLane ? 'middle' : 'right');
+    // Keyboard controls
+    document.addEventListener('keydown', (e) => {
+        if(!this.state.active || this.state.paused) return;
+        
+        if(e.key === 'ArrowLeft' || e.key === 'a') {
+            this.movePlayer(-1);
             e.preventDefault();
-        }, { passive: false });
-
-    // Mus: sett målposisjon
-    this.canvas.addEventListener('mousemove', (e) => {
-      if (!this.state.active || this.state.paused) return;
-      const rect = this.canvas.getBoundingClientRect();
-      const mouseX = e.clientX - rect.left;
-      const minX = this.config.road.leftLane;
-      const maxX = (this.config.road.rightLane + this.config.road.laneWidth) - this.config.player.width;
-      this.state.player.targetX = constrain(mouseX - this.config.player.width / 2, minX, maxX);
+        }
+        if(e.key === 'ArrowRight' || e.key === 'd') {
+            this.movePlayer(1);
+            e.preventDefault();
+        }
     });
 
-    // Klikk: bytt bane
-    this.canvas.addEventListener('click', (e) => {
-      if (!this.state.active || this.state.paused) return;
-      const rect = this.canvas.getBoundingClientRect();
-      const clickX = e.clientX - rect.left;
-      this.moveToLane(clickX < this.config.road.middleLane ? 'left' :
-        clickX < this.config.road.rightLane ? 'middle' : 'right');
-        });
+    // Replace the touch controls with this simpler version
+    this.canvas.addEventListener('touchstart', (e) => {
+        if (!this.state.active || this.state.paused) return;
+        const touch = e.touches[0];
+        const rect = this.canvas.getBoundingClientRect();
+        const touchX = touch.clientX - rect.left;
+        
+        this.state.player.targetX = Math.max(
+            this.config.road.leftLane,
+            Math.min(
+                touchX - this.config.player.width / 2,
+                (this.config.road.rightLane + this.config.road.laneWidth) - this.config.player.width
+            )
+        );
+        e.preventDefault();
+    }, { passive: false });
+
+    this.canvas.addEventListener('touchmove', (e) => {
+        if (!this.state.active || this.state.paused) return;
+        const touch = e.touches[0];
+        const rect = this.canvas.getBoundingClientRect();
+        const touchX = touch.clientX - rect.left;
+        
+        this.state.player.targetX = Math.max(
+            this.config.road.leftLane,
+            Math.min(
+                touchX - this.config.player.width / 2,
+                (this.config.road.rightLane + this.config.road.laneWidth) - this.config.player.width
+            )
+        );
+        e.preventDefault();
+    }, { passive: false });
 
     // Restart-knapp
     const startBtn = document.getElementById('startBtn');
@@ -175,31 +182,77 @@ class Game {
             this.config.road.rightLane = this.canvas.width * 0.60;
             this.config.road.laneWidth = this.canvas.width * 0.25;
         });
-  }
 
-  updateInput(dt) {
-    let newTarget = this.state.player.targetX;
-    if (this.input.left) newTarget -= this.config.player.speed * dt;
-    if (this.input.right) newTarget += this.config.player.speed * dt;
-        const minX = this.config.road.leftLane;
-        const maxX = (this.config.road.rightLane + this.config.road.laneWidth) - this.config.player.width;
-    this.state.player.targetX = constrain(newTarget, minX, maxX);
-  }
+        // Add mouse/touchpad support
+    this.canvas.addEventListener('click', (e) => {
+        if (!this.state.active || this.state.paused) return;
+        
+        // Get click position relative to canvas
+        const rect = this.canvas.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        
+        // Determine target lane based on click position
+        if (clickX < this.config.road.middleLane) {
+            this.moveToLane('left');
+        } else if (clickX < this.config.road.rightLane) {
+            this.moveToLane('middle');
+        } else {
+            this.moveToLane('right');
+        }
+    });
+// Add touchpad/mouse move support (for laptops)
+document.addEventListener('mousemove', (e) => {
+  if (!this.state.active || this.state.paused) return;
+  
+  const rect = this.canvas.getBoundingClientRect();
+  const mouseX = e.clientX - rect.left;
+  
+  // Remove the height check to allow movement anywhere
+  this.state.player.targetX = Math.max(
+      this.config.road.leftLane,
+      Math.min(
+          mouseX - this.config.player.width / 2,
+          (this.config.road.rightLane + this.config.road.laneWidth) - this.config.player.width
+      )
+  );
+});
+}
+
+getCurrentLane() {
+    const x = this.state.player.x + (this.config.player.width / 2);
+    if (x < this.config.road.middleLane) return 0; // Left lane
+    if (x < this.config.road.rightLane) return 1; // Middle lane
+    return 2; // Right lane
+}
+
+movePlayer(direction) {
+  // Smaller increment for smoother movement
+  const moveIncrement = this.config.road.laneWidth * 0.2;
+  const newTargetX = this.state.player.targetX + (moveIncrement * direction);
+  const minX = this.config.road.leftLane;
+  const maxX = (this.config.road.rightLane + this.config.road.laneWidth) - this.config.player.width;
+  this.state.player.targetX = constrain(newTargetX, minX, maxX);
+}
 
   moveToLane(lane) {
+    // Constrain lane number between 0-2
+    lane = Math.max(0, Math.min(2, lane));
+    
     let targetX;
     switch (lane) {
-      case 'left':
-        targetX = this.config.road.leftLane + (this.config.road.laneWidth / 2) - (this.config.player.width / 2);
-        break;
-      case 'middle':
-        targetX = this.config.road.middleLane + (this.config.road.laneWidth / 2) - (this.config.player.width / 2);
-        break;
-      case 'right':
-        targetX = this.config.road.rightLane + (this.config.road.laneWidth / 2) - (this.config.player.width / 2);
-        break;
+        case 0: // Left
+            targetX = this.config.road.leftLane + (this.config.road.laneWidth / 2);
+            break;
+        case 1: // Middle
+            targetX = this.config.road.middleLane + (this.config.road.laneWidth / 2);
+            break;
+        case 2: // Right
+            targetX = this.config.road.rightLane + (this.config.road.laneWidth / 2);
+            break;
     }
-    this.state.player.targetX = targetX;
+    
+    // Center the car in the lane
+    this.state.player.targetX = targetX - (this.config.player.width / 2);
     }
 
     spawnObstacle() {
@@ -264,13 +317,15 @@ class Game {
     }
   }
 
+
+
     update() {
     if (!this.state.active || this.state.paused) return;
     const now = Date.now();
     const dt = (now - this.lastUpdateTime) / 1000;
     this.lastUpdateTime = now;
 
-    this.updateInput(dt);
+   
 
     const baseSpeed = 0.02;
     const drunkSpeedBonus = 0.05;
@@ -315,13 +370,32 @@ class Game {
             this.state.shakeOffset.x = 0;
             this.state.shakeOffset.y = 0;
         }
-    if (this.state.player.promille >= 10) {
+        this.updateInput(dt);
+    
+        if (this.state.player.promille >= 10) {
             this.gameOver();
         }
         
 
  
     }
+
+// Add this method inside the Game class
+updateInput(dt) {
+  // Smooth player movement
+  if (this.state.player.targetX !== this.state.player.x) {
+      const moveSpeed = this.config.player.speed * dt;
+      const dx = this.state.player.targetX - this.state.player.x;
+      const direction = Math.sign(dx);
+      const distance = Math.abs(dx);
+      
+      if (distance > moveSpeed) {
+          this.state.player.x += direction * moveSpeed;
+      } else {
+          this.state.player.x = this.state.player.targetX;
+      }
+  }
+}
 
     checkCollisions() {
         const player = this.state.player;
@@ -520,7 +594,7 @@ function setup() {
       y: random(50, 200),
       size: random(60, 120),
       speed: random(0.2, 0.6),
-      face: random(['😎', '😴', '🥰', '😮‍💨', '😂', 'funny tekst goes here'])
+      face: random(['😎', '😴', '🥰', '😮‍💨', '😂', 'tralalero tralala', 'sigma'])
     });
   }
 }
