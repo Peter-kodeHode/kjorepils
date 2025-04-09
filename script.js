@@ -111,7 +111,8 @@ class Game {
     }
 
     initEventListeners() {
-      document.addEventListener('keydown', (e) => {
+    // Keyboard controls
+    document.addEventListener('keydown', (e) => {
         if(!this.state.active || this.state.paused) return;
         
         if(e.key === 'ArrowLeft' || e.key === 'a') {
@@ -123,27 +124,57 @@ class Game {
             e.preventDefault();
         }
     });
+
+    // Touch controls with better handling
     let touchStartX = null;
-    document.addEventListener('touchstart', (e) => {
+    let lastTouchTime = 0;
+    const touchThreshold = 30; // Minimum pixel movement to trigger
+
+    this.canvas.addEventListener('touchstart', (e) => {
         if (!this.state.active || this.state.paused) return;
         touchStartX = e.touches[0].clientX;
+        lastTouchTime = Date.now();
         e.preventDefault();
     }, { passive: false });
 
-    document.addEventListener('touchmove', (e) => {
+    this.canvas.addEventListener('touchmove', (e) => {
         if (!this.state.active || this.state.paused || touchStartX === null) return;
+        
         const touchX = e.touches[0].clientX;
         const deltaX = touchX - touchStartX;
+        const currentTime = Date.now();
         
-        if (Math.abs(deltaX) > 10) { // Add small threshold to prevent accidental movements
-            this.movePlayer(deltaX > 0 ? 1 : -1);
+        // Only process touch if enough movement and time has passed
+        if (Math.abs(deltaX) > touchThreshold && currentTime - lastTouchTime > 100) {
+            if (deltaX > 0) {
+                this.moveToLane(this.getCurrentLane() + 1);
+            } else {
+                this.moveToLane(this.getCurrentLane() - 1);
+            }
             touchStartX = touchX;
+            lastTouchTime = currentTime;
         }
         e.preventDefault();
     }, { passive: false });
 
-    document.addEventListener('touchend', () => {
+    this.canvas.addEventListener('touchend', () => {
         touchStartX = null;
+    });
+
+    // Click controls
+    this.canvas.addEventListener('click', (e) => {
+        if (!this.state.active || this.state.paused) return;
+        
+        const rect = this.canvas.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        
+        if (clickX < this.config.road.middleLane) {
+            this.moveToLane(0); // Left lane
+        } else if (clickX < this.config.road.rightLane) {
+            this.moveToLane(1); // Middle lane
+        } else {
+            this.moveToLane(2); // Right lane
+        }
     });
 
     // Restart-knapp
@@ -206,6 +237,13 @@ document.addEventListener('mousemove', (e) => {
 });
 }
 
+getCurrentLane() {
+    const x = this.state.player.x + (this.config.player.width / 2);
+    if (x < this.config.road.middleLane) return 0; // Left lane
+    if (x < this.config.road.rightLane) return 1; // Middle lane
+    return 2; // Right lane
+}
+
 movePlayer(direction) {
   // Smaller increment for smoother movement
   const moveIncrement = this.config.road.laneWidth * 0.2;
@@ -216,19 +254,24 @@ movePlayer(direction) {
 }
 
   moveToLane(lane) {
+    // Constrain lane number between 0-2
+    lane = Math.max(0, Math.min(2, lane));
+    
     let targetX;
     switch (lane) {
-      case 'left':
-        targetX = this.config.road.leftLane + (this.config.road.laneWidth / 2) - (this.config.player.width / 2);
-        break;
-      case 'middle':
-        targetX = this.config.road.middleLane + (this.config.road.laneWidth / 2) - (this.config.player.width / 2);
-        break;
-      case 'right':
-        targetX = this.config.road.rightLane + (this.config.road.laneWidth / 2) - (this.config.player.width / 2);
-        break;
+        case 0: // Left
+            targetX = this.config.road.leftLane + (this.config.road.laneWidth / 2);
+            break;
+        case 1: // Middle
+            targetX = this.config.road.middleLane + (this.config.road.laneWidth / 2);
+            break;
+        case 2: // Right
+            targetX = this.config.road.rightLane + (this.config.road.laneWidth / 2);
+            break;
     }
-    this.state.player.targetX = targetX;
+    
+    // Center the car in the lane
+    this.state.player.targetX = targetX - (this.config.player.width / 2);
     }
 
     spawnObstacle() {
