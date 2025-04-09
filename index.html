@@ -8,6 +8,135 @@
   <!-- p5.js og p5.sound fra CDN -->
   <script src="https://cdn.jsdelivr.net/npm/p5@1.6.0/lib/p5.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/p5@1.6.0/lib/addons/p5.sound.min.js"></script>
+  <style>
+    /* Update button rounding and styling for all menu buttons */
+    .menuBtn {
+      background: linear-gradient(135deg, #ff8e53, #fe6b8b);
+      border: none;
+      color: white;
+      font-size: 1.6rem;
+      font-weight: bold;
+      padding: 1.2rem 2rem;
+      border-radius: 25px; /* More rounded corners */
+      box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.3s;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 0.8rem;
+    }
+
+    .menuBtn:hover {
+      transform: scale(1.03);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    }
+
+    .menuBtn:active {
+      transform: scale(0.98);
+      box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+    }
+
+    /* Make Start fyllekjøring button special */
+    #startButton {
+      background: linear-gradient(45deg, #e53935, #ff6b6b);
+      font-size: 1.8rem;
+      padding: 1.5rem 2.5rem;
+      border-radius: 30px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.25), 0 0 30px rgba(229, 57, 53, 0.4);
+      animation: subtle-pulse 3s infinite;
+      margin-bottom: 1.5rem;
+    }
+
+    /* Subtle pulse animation for start button */
+    @keyframes subtle-pulse {
+      0% { 
+        box-shadow: 0 10px 20px rgba(0,0,0,0.25), 0 0 20px rgba(229, 57, 53, 0.4);
+        transform: scale(1);
+      }
+      50% { 
+        box-shadow: 0 12px 25px rgba(0,0,0,0.3), 0 0 25px rgba(229, 57, 53, 0.5);
+        transform: scale(1.02);
+      }
+      100% { 
+        box-shadow: 0 10px 20px rgba(0,0,0,0.25), 0 0 20px rgba(229, 57, 53, 0.4);
+        transform: scale(1);
+      }
+    }
+
+    /* Remove animation from main title to make it static */
+    #mainTitle {
+      position: fixed;
+      top: 10%;
+      left: 50%;
+      transform: translateX(-50%); /* No animation */
+      font-size: 4rem;
+      color: #e53935;
+      font-weight: bold;
+      text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+      z-index: 100;
+    }
+
+    /* Update info buttons for more friendly appearance */
+    .infoButtons {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      margin-top: 2rem;
+      width: 80%;
+      max-width: 400px;
+    }
+
+    .infoButtons button {
+      width: 45%;
+      max-width: 180px;
+      font-size: 1.2rem;
+      padding: 1rem 1.5rem;
+      background: linear-gradient(135deg, #42a5f5, #2196f3);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      border-radius: 22px; /* More rounded */
+    }
+
+    /* Round the question buttons */
+    #questionPopup button {
+      border-radius: 20px;
+      padding: 0.8rem 1.5rem;
+      transition: transform 0.1s, box-shadow 0.2s;
+    }
+
+    #questionPopup button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+    }
+
+    /* Make game over buttons more rounded */
+    .gameOverButtons button {
+      border-radius: 25px;
+      transition: transform 0.2s, box-shadow 0.3s;
+    }
+
+    .gameOverButtons button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+    }
+
+    /* Make modals more rounded and cozy */
+    #aboutModal, #settingsMenu, #soberModal {
+      border-radius: 30px;
+      box-shadow: 0 15px 30px rgba(0,0,0,0.25);
+    }
+
+    /* Round the fancy buttons */
+    .fancyBtn {
+      border-radius: 22px;
+      transition: transform 0.2s, box-shadow 0.3s;
+    }
+
+    .fancyBtn:hover {
+      transform: scale(1.03);
+      box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+    }
+  </style>
 </head>
 <body>
   <div id="loadingMessage">Laster lyder ♪ ...</div>
@@ -16,7 +145,7 @@
     <div class="menuPanel">
       <button class="menuBtn" id="startButton">
         🎮 Start fyllekjøring!
-        <span class="button-disclaimer">(OBS: Ikke fyllekjør i virkeligheten ❤)</span>
+        <span class="button-disclaimer">(Disclaimer: Ikke fyllekjør i virkeligheten ❤)</span>
       </button>
       <button class="menuBtn" id="soberButton">🥸 Promillekalkulator</button>
       <button class="menuBtn" id="settingsButton">⚙️ Innstillinger</button>
@@ -31,12 +160,39 @@
   <canvas id="gameCanvas"></canvas>
   <!-- Game UI-elementer -->
   <div id="gameUI">
-    <div id="stats"></div>
+    <div id="statsContainer">
+      <div class="stat-box" id="distanceStat">
+        <div class="stat-icon">🚗</div>
+        <div class="stat-value" id="distanceValue">0 km</div>
+      </div>
+      <div class="stat-box" id="livesStat">
+        <div class="stat-icon">❤️</div>
+        <div class="stat-value" id="livesValue">5</div>
+      </div>
+      <div class="stat-box" id="promilleStat">
+        <div class="stat-icon">🍺</div>
+        <div class="stat-value" id="promilleValue">0.0‰</div>
+        <div class="promille-bar-container">
+          <div id="promilleBar"></div>
+        </div>
+      </div>
+    </div>
+    
     <button id="startBtn">Start på nytt</button>
     <div id="questionPopup">
       <p id="questionText"></p>
       <button id="answer1"></button>
       <button id="answer2"></button>
+    </div>
+    <!-- Game Over screen -->
+    <div id="gameOverScreen">
+      <h2>Game Over!</h2>
+      <p id="finalScore">Du kjørte <span id="finalDistance">0</span> km</p>
+      <div class="gameOverEmoji">🚓</div>
+      <div class="gameOverButtons">
+        <button id="backToMenuBtn">🏠 Tilbake til menyen</button>
+        <button id="playAgainBtn">🔄 Spill på nytt</button>
+      </div>
     </div>
   </div>
 
@@ -92,15 +248,137 @@
   </div>
 
   <div id="settingsMenu">
-    <label for="volumeSlider">📶 Volum:</label>
-    <input type="range" id="volumeSlider" min="0" max="100" value="50">
-    <br><br>
+    <h2>⚙️ Innstillinger</h2>
+    <div class="volume-control">
+      <label for="volumeSlider">🔊 Volum:</label>
+      <input type="range" id="volumeSlider" min="0" max="100" value="50">
+      <span id="volumeValue">50%</span>
+    </div>
     <button class="menuBtn" onclick="document.getElementById('settingsMenu').style.display='none'">Lukk</button>
   </div>
 
   <!-- Spilllogikk -->
   <script src="script.js"></script>
-  <!-- Meny- og UI-logikk -->
-  <script src="meny.js"></script>
+  <script>
+    if (youthButton) {
+      youthButton.addEventListener('click', () => {
+        window.open('https://www.ungitrafikken.no/', '_blank');
+        
+        // Play click sound if available (global function)
+        if (clickSound && typeof clickSound.play === 'function') {
+          clickSound.play();
+        }
+      });
+    }
+
+
+    // Safer cloud reset function
+    function resetClouds() {
+      try {
+        // Clear existing clouds
+        clouds = [];
+        
+        // Cloud content options
+        const emojis = ['😎', '😴', '🥰', '😮‍💨', '😂', '🗿', '🦇', '🌈', '🦄', '🐼'];
+        const textMessages = [
+          'tralalero tralala', 
+          'sigma', 
+          'r u winning son?', 
+          'vær ansvarsfull!', 
+          'never gonne give you up, never gonna let you down', 
+          'promillegrense 0.2‰'
+        ];
+        
+        // Only proceed if p5 width and random functions are available
+        if (typeof width !== 'undefined' && typeof random === 'function') {
+          for (let i = 0; i < 6; i++) {
+            // Use 80% chance for emoji (only 20% chance for text)
+            const useEmoji = Math.random() > 0.2;
+            const cloudContent = useEmoji ? 
+              emojis[Math.floor(Math.random() * emojis.length)] : 
+              textMessages[Math.floor(Math.random() * textMessages.length)];
+              
+            clouds.push({
+              x: random(width),
+              y: random(50, 200),
+              size: random(60, 120),
+              speed: random(0.2, 0.6),
+              face: cloudContent,
+              isText: !useEmoji
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error resetting clouds:', error);
+      }
+    }
+
+    function drawCloud(cloud) {
+      try {
+        if (typeof noStroke !== 'function' || typeof fill !== 'function' || typeof ellipse !== 'function') {
+          console.error('P5 drawing functions not available');
+          return;
+        }
+        
+        noStroke();
+        
+        // Cute light blue tinted clouds
+        fill(240, 250, 255, 200);
+        
+        let s = cloud.size;
+        
+        // Check if the cloud contains text that needs extended width
+        let isTextCloud = typeof cloud.face === 'string' && cloud.face.length > 2;
+        let cloudTextWidth = 0;
+        
+        if (isTextCloud) {
+          textSize(s / 4);
+          textAlign(CENTER, CENTER);
+          cloudTextWidth = textWidth(cloud.face);
+          
+          // Adjust cloud size based on text length
+          let baseWidth = s * 0.7;
+          let stretchFactor = Math.max(1, cloudTextWidth / baseWidth);
+          
+          // Cuter, rounder text clouds
+          ellipse(cloud.x, cloud.y, s * 0.6 * stretchFactor, s * 0.65);
+          ellipse(cloud.x - s * 0.3 * stretchFactor, cloud.y + s * 0.1, s * 0.55, s * 0.55);
+          ellipse(cloud.x + s * 0.3 * stretchFactor, cloud.y + s * 0.1, s * 0.55, s * 0.55);
+          ellipse(cloud.x, cloud.y + s * 0.2, s * 0.7 * stretchFactor, s * 0.55);
+          
+          // Add cute highlights
+          fill(255, 255, 255, 100);
+          ellipse(cloud.x - s * 0.15, cloud.y - s * 0.1, s * 0.1, s * 0.1);
+          ellipse(cloud.x + s * 0.2, cloud.y - s * 0.15, s * 0.08, s * 0.08);
+        } else {
+          // Cuter emoji clouds
+          ellipse(cloud.x, cloud.y, s * 0.65, s * 0.65);
+          ellipse(cloud.x - s * 0.32, cloud.y + s * 0.12, s * 0.55, s * 0.55);
+          ellipse(cloud.x + s * 0.32, cloud.y + s * 0.12, s * 0.55, s * 0.55);
+          ellipse(cloud.x, cloud.y + s * 0.22, s * 0.75, s * 0.55);
+          
+          // Add cute highlights
+          fill(255, 255, 255, 100);
+          ellipse(cloud.x - s * 0.15, cloud.y - s * 0.15, s * 0.1, s * 0.1);
+          ellipse(cloud.x + s * 0.2, cloud.y - s * 0.1, s * 0.08, s * 0.08);
+        }
+        
+        // Draw the text/emoji
+        textSize(s / 4);
+        textAlign(CENTER, CENTER);
+        
+        // Use dark text for strings, regular color for emojis
+        if (isTextCloud) {
+          fill(0, 0, 0, 220); // Dark text for better readability
+        } else {
+          fill(0); // Standard black for emojis
+        }
+        
+        text(cloud.face, cloud.x, cloud.y);
+      } catch (error) {
+        console.error('Error drawing cloud:', error);
+      }
+    }
+  </script>
 </body>
 </html>

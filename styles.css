@@ -1,116 +1,38 @@
 body {
   margin: 0;
   padding: 0;
-  touch-action: manipulation;
-  font-family: 'Comic Sans MS', cursive;
   overflow: hidden;
-  background-color: #fff0f5;
+  font-family: 'Comic Sans MS', cursive;
+  touch-action: manipulation;
+  background: #fff0f5;
 }
 
-/* p5 bakgrunnskanvas for skyene */
 canvas {
+  display: block;
   position: fixed;
   top: 0;
   left: 0;
-  z-index: 0;
-  pointer-events: none;
+  z-index: 1;
 }
 
-/* Spill-canvas – brukt av Game, vises over bakgrunnen */
-#gameCanvas {
-  display: none; /* Skjules til spillstart */
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 2;
-  pointer-events: auto;
-  width: 100vw;
-  height: 100vh;
-}
-
-/* Game UI-elementer (stats, restart-knapp, spørsmål-popup) */
-#gameUI {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 3;
-}
-
-#stats {
-  position: fixed;
-  top: 10px;
-  left: 10px;
-  color: white;
-  font-size: 1.2rem;
-  text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-  pointer-events: auto;
-}
-
-#startBtn {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  pointer-events: auto;
-  display: none;
-  padding: 0.8rem 1.5rem;
-  font-size: 1.1rem;
-  border: none;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #ff8e53, #fe6b8b);
-  color: white;
-  cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.25);
-  z-index: 4;
-}
-
-#questionPopup {
-  display: none;
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: white; 
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-  z-index: 5;
-  pointer-events: auto;
-}
-
-/* Startskjerm og meny */
+/* Enhanced main title */
 #mainTitle {
   position: fixed;
-  top: 20px;
+  top: 10%;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 3rem;
-  font-weight: 900;
+  font-size: 4rem;
   color: #e53935;
-  text-shadow: 4px 4px 8px rgba(0,0,0,0.4), 0 0 12px rgba(255,255,255,0.6);
-  z-index: 1001;
-  white-space: nowrap;
-  letter-spacing: 2px;
-  animation: pulse 2s infinite;
-  pointer-events: none; /* Allows clicks to pass through */
+  font-weight: bold;
+  text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+  z-index: 100;
+  animation: pulse-title 2s infinite;
 }
 
-@media (max-height: 600px) {
-  #mainTitle {
-    font-size: 2.5rem;
-    top: 10px;
-  }
-}
-
-@media (max-height: 500px) {
-  #mainTitle {
-    font-size: 2rem;
-    top: 5px;
-  }
+@keyframes pulse-title {
+  0% { transform: translateX(-50%) scale(1); }
+  50% { transform: translateX(-50%) scale(1.05); }
+  100% { transform: translateX(-50%) scale(1); }
 }
 
 #startScreen {
@@ -123,58 +45,36 @@ canvas {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
-  padding-top: 80px; /* Reduced padding to leave room for content */
-}
-
-#startTitle {
-  font-size: 2.5rem;
-  color: #d32f2f;
-  text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
-  margin-bottom: 1.5rem;
-  white-space: nowrap;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: nowrap;
+  padding-top: 80px;
+  z-index: 100;
 }
 
 .menuPanel {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  margin-bottom: 2.5rem;
   width: 80%;
   max-width: 400px;
 }
 
-.menuPanel button {
-  background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
+/* Enhanced menu buttons */
+.menuBtn {
+  background: linear-gradient(135deg, #ff8e53, #fe6b8b);
   border: none;
-  padding: 1rem 2rem;
-  font-size: 1.2rem;
   color: white;
+  font-size: 1.6rem;
   font-weight: bold;
-  border-radius: 20px;
+  padding: 1.2rem 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
   cursor: pointer;
-  box-shadow: 0 6px 10px rgba(0,0,0,0.15);
-  text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
   transition: transform 0.1s, box-shadow 0.3s;
   position: relative;
-  overflow: visible;
-  z-index: 1002;
+  overflow: hidden;
 }
 
-.menuPanel button:hover {
-  transform: scale(1.05);
-  box-shadow: 0 8px 15px rgba(0,0,0,0.2);
-}
-
-.menuPanel button:active {
-  transform: scale(0.95);
-}
-
-/* Start button styling - enhanced */
+/* Special style for start button */
 #startButton {
   background: linear-gradient(45deg, #e53935, #ff6b6b);
   font-size: 1.8rem;
@@ -184,41 +84,6 @@ canvas {
   box-shadow: 0 10px 20px rgba(0,0,0,0.25), 0 0 30px rgba(229, 57, 53, 0.4);
   animation: pulse-start 2s infinite;
   margin-bottom: 2rem;
-  position: relative;
-  overflow: hidden;
-}
-
-#startButton:hover {
-  background: linear-gradient(45deg, #d32f2f, #ff5252);
-  transform: scale(1.15);
-}
-
-#startButton:active {
-  transform: scale(1.05);
-}
-
-/* Add shine effect to start button */
-#startButton:before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 70%;
-  height: 100%;
-  background: linear-gradient(
-    to right,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0.3) 50%,
-    rgba(255, 255, 255, 0) 100%
-  );
-  transform: skewX(-25deg);
-  animation: shine 3s infinite;
-}
-
-@keyframes shine {
-  0% { left: -100%; }
-  20% { left: 100%; }
-  100% { left: 100%; }
 }
 
 @keyframes pulse-start {
@@ -227,13 +92,18 @@ canvas {
   100% { box-shadow: 0 10px 20px rgba(0,0,0,0.25), 0 0 30px rgba(229, 57, 53, 0.4); }
 }
 
-/* Info buttons container styling */
+.button-disclaimer {
+  display: block;
+  font-size: 0.7rem;
+  margin-top: 0.5rem;
+}
+
+/* Fix info buttons */
 .infoButtons {
   display: flex;
   justify-content: center;
   gap: 1.5rem;
-  margin-top: 1rem;
-  position: relative;
+  margin-top: 2rem;
   width: 80%;
   max-width: 400px;
 }
@@ -241,163 +111,416 @@ canvas {
 .infoButtons button {
   width: 45%;
   max-width: 180px;
-  background: linear-gradient(45deg, #42a5f5, #64b5f6);
-  font-size: 1rem;
-  padding: 0.8rem 1.5rem;
-  border: none;
-  color: white;
-  font-weight: bold;
-  border-radius: 20px; /* Matching the other buttons */
-  cursor: pointer;
-  box-shadow: 0 6px 10px rgba(0,0,0,0.15);
-  text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
-  transition: transform 0.1s, box-shadow 0.3s;
-  position: relative;
-  overflow: hidden;
-}
-
-.infoButtons button:hover {
-  background: linear-gradient(45deg, #2196f3, #42a5f5);
-  transform: scale(1.05);
-  box-shadow: 0 8px 15px rgba(0,0,0,0.2);
-}
-
-.infoButtons button:active {
-  transform: scale(0.95);
-}
-
-/* Add a subtle animation for non-start buttons */
-#soberButton, #settingsButton {
-  position: relative;
-  overflow: hidden;
-}
-
-#soberButton:before, #settingsButton:before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 50%;
-  height: 100%;
-  background: linear-gradient(
-    to right,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0.2) 50%,
-    rgba(255, 255, 255, 0) 100%
-  );
-  transform: skewX(-25deg);
-  transition: left 0.8s ease-out;
-}
-
-#soberButton:hover:before, #settingsButton:hover:before {
-  left: 100%;
-  transition: left 0.8s ease-out;
-}
-
-/* Ensure all modal buttons have consistent styling */
-#aboutModal button, #settingsMenu button, #soberModal button {
-  border-radius: 20px;
-  transition: transform 0.1s, box-shadow 0.3s;
-}
-
-#aboutModal button:hover, #settingsMenu button:hover, #soberModal button:hover {
-  transform: scale(1.05);
-  box-shadow: 0 6px 14px rgba(0,0,0,0.3);
-}
-
-#aboutModal button:active, #settingsMenu button:active, #soberModal button:active {
-  transform: scale(0.95);
-}
-
-/* Media query for very small screens */
-@media (max-height: 480px) {
-  #startScreen {
-    padding-top: 60px;
-  }
-  
-  .menuPanel {
-    gap: 0.7rem;
-    margin-bottom: 1rem;
-  }
-  
-  .infoButtons {
-    margin-top: 0;
-  }
-}
-
-@keyframes pulse {
-  0% { transform: translateX(-50%) scale(1); }
-  50% { transform: translateX(-50%) scale(1.05); }
-  100% { transform: translateX(-50%) scale(1); }
+  font-size: 1.2rem;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, #42a5f5, #2196f3);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
 #loadingMessage {
-  position: absolute;
-  top: 20px;
+  position: fixed;
+  top: 50%;
   left: 50%;
-  transform: translateX(-50%);
-  background: rgba(255, 255, 255, 0.9);
-  padding: 10px 20px;
-  border-radius: 12px;
-  font-size: 1.2rem;
+  transform: translate(-50%, -50%);
+  font-size: 1.5rem;
   z-index: 2000;
 }
 
-#aboutModal, #settingsMenu, #soberModal {
+/* Game Canvas and UI */
+#gameCanvas {
   display: none;
+}
+
+#gameUI {
+  display: none;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none;
+}
+
+#stats {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  color: white;
+  background: rgba(0,0,0,0.5);
+  padding: 10px;
+  border-radius: 5px;
+  font-weight: bold;
+  pointer-events: auto;
+}
+
+#startBtn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #e53935;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+#questionPopup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+  display: none;
+  z-index: 1000;
+  pointer-events: auto;
+}
+
+#questionText {
+  font-size: 1.2rem;
+  margin-bottom: 20px;
+}
+
+#questionPopup button {
+  background: linear-gradient(135deg, #ff8e53, #fe6b8b);
+  border: none;
+  color: white;
+  padding: 0.8rem 1.5rem;
+  margin: 5px;
+  border-radius: 5px;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+/* Game Over Screen */
+#gameOverScreen {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 255, 255, 0.95);
+  padding: 2rem;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  z-index: 2001;
+  display: none;
+  width: 80%;
+  max-width: 400px;
+}
+
+#gameOverScreen h2 {
+  font-size: 2rem;
+  color: #e53935;
+  margin-top: 0;
+}
+
+#finalScore {
+  font-size: 1.2rem;
+  margin: 1rem 0;
+}
+
+.gameOverEmoji {
+  font-size: 3rem;
+  margin: 1rem 0;
+  animation: shake 0.6s ease-in-out infinite;
+}
+
+@keyframes shake {
+  0%, 100% { transform: rotate(-5deg); }
+  50% { transform: rotate(5deg); }
+}
+
+.gameOverButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.gameOverButtons button {
+  font-size: 1.2rem;
+  padding: 0.8rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  box-shadow: 0 6px 10px rgba(0,0,0,0.15);
+  color: white;
+}
+
+#playAgainBtn {
+  background: linear-gradient(135deg, #ff8e53, #fe6b8b);
+}
+
+#backToMenuBtn {
+  background: linear-gradient(135deg, #42a5f5, #2196f3);
+}
+
+/* Modals */
+#aboutModal, #settingsMenu, #soberModal {
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   background: white;
   padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  z-index: 2001;
+  border-radius: 15px;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+  z-index: 1000;
+  display: none;
+  width: 80%;
+  max-width: 400px;
 }
 
-.fancyBtn {
+/* Volume Controls */
+.volume-control {
+  margin: 1.5rem 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+#volumeSlider {
+  width: 200px;
+  height: 8px;
+  -webkit-appearance: none;
+  background: #ddd;
+  border-radius: 4px;
+  outline: none;
+}
+
+#volumeSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
   background: linear-gradient(135deg, #ff8e53, #fe6b8b);
-  border: none;
-  padding: 1rem 2rem;
-  font-size: 1.1rem;
-  color: #fff;
-  font-weight: bold;
-  border-radius: 12px;
   cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.25);
-  text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
-  transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.fancyBtn:hover {
-  transform: scale(1.05);
-  box-shadow: 0 6px 14px rgba(0,0,0,0.3);
+#volumeValue {
+  font-size: 0.9rem;
+  color: #666;
 }
 
+/* Promille kalkulator */
 .drinkRow {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.5rem;
+  justify-content: space-between;
+  margin-bottom: 5px;
 }
 
 .drinkRow label {
   flex: 1;
 }
 
-.drinkRow input {
-  width: 60px;
-  padding: 0.2rem;
-  text-align: center;
+#bacVisual {
+  width: 100%;
+  height: 20px;
+  background: #eee;
+  border-radius: 10px;
+  margin: 10px 0;
+  overflow: hidden;
 }
 
-/* Add this style for the disclaimer text */
-.button-disclaimer {
-  display: block;
-  font-size: 0.7rem;
-  margin-top: 0.2rem;
-  font-weight: normal;
-  opacity: 0.8;
-  text-shadow: none;
+#bacBar {
+  height: 100%;
+  width: 0%;
+  background: green;
+  transition: width 0.5s, background-color 0.5s;
+}
+
+#bacEmoji {
+  font-size: 2rem;
+  margin: 10px 0;
+}
+
+/* Poof Animation */
+.poof-particle {
+  position: fixed;
+  pointer-events: none;
+  font-size: 24px;
+  z-index: 2500;
+}
+
+@keyframes poof {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) scale(0.5) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--dx), var(--dy)) scale(1.2) rotate(var(--rot));
+  }
+}
+
+.poof-particle {
+  animation: poof 0.8s forwards;
+}
+
+/* Shake animation for car collision - smoother version */
+@keyframes game-canvas-shake {
+  0%, 100% { transform: translate(0, 0); }
+  20% { transform: translate(-4px, -2px); }
+  40% { transform: translate(4px, -1px); }
+  60% { transform: translate(-3px, 2px); }
+  80% { transform: translate(3px, 1px); }
+}
+
+.game-canvas-shake {
+  animation: game-canvas-shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+/* Fancy buttons */
+.fancyBtn {
+  background: linear-gradient(135deg, #ff8e53, #fe6b8b);
+  color: white;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+  cursor: pointer;
+}
+
+/* Fancy Game Stats UI */
+#statsContainer {
+  position: fixed;
+  top: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 15px;
+  z-index: 100;
+  pointer-events: none;
+}
+
+.stat-box {
+  background: rgba(255, 255, 255, 0.9);
+  padding: 8px 15px;
+  border-radius: 25px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 80px;
+  transition: transform 0.2s, box-shadow 0.3s;
+  pointer-events: auto;
+  backdrop-filter: blur(2px);
+  border: 2px solid white;
+}
+
+.stat-box:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+.stat-icon {
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-value {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #333;
+}
+
+/* Distance stat styling */
+#distanceStat {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(200, 250, 255, 0.9));
+  border-color: #c8faff;
+}
+
+/* Lives stat styling with beating animation */
+#livesStat {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 220, 220, 0.9));
+  border-color: #ffa0a0;
+}
+
+#livesStat .stat-icon {
+  animation: heartbeat 1.5s ease-in-out infinite;
+}
+
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  15% { transform: scale(1.2); }
+  30% { transform: scale(1); }
+  45% { transform: scale(1.15); }
+}
+
+/* Promille stat styling */
+#promilleStat {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 240, 200, 0.9));
+  border-color: #ffdc8a;
+  padding-bottom: 12px;
+  min-width: 100px;
+  position: relative;
+}
+
+.promille-bar-container {
+  position: absolute;
+  bottom: 5px;
+  left: 10px;
+  right: 10px;
+  height: 5px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+#promilleBar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(to right, #2ecc71, #f1c40f, #e67e22, #e74c3c);
+  border-radius: 3px;
+  transition: width 0.5s;
+}
+
+/* Warning effect for high promille */
+.promille-warning #promilleStat {
+  animation: warning-pulse 2s infinite;
+}
+
+@keyframes warning-pulse {
+  0%, 100% { box-shadow: 0 4px 10px rgba(231, 76, 60, 0.2); }
+  50% { box-shadow: 0 4px 20px rgba(231, 76, 60, 0.6); }
+}
+
+/* Game stats changing animations */
+.stat-change {
+  animation: bounce 0.5s;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
+/* Milestone celebration */
+.milestone-celebration {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 4rem;
+  font-weight: bold;
+  color: gold;
+  text-shadow: 0 0 10px rgba(0,0,0,0.5);
+  animation: milestone 2s forwards;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+@keyframes milestone {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+  15% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+  80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); }
 }
