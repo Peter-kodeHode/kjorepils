@@ -125,57 +125,38 @@ class Game {
         }
     });
 
-    // Touch controls with better handling
-    let touchStartX = null;
-    let lastTouchTime = 0;
-    const touchThreshold = 30; // Minimum pixel movement to trigger
-
+    // Replace the touch controls with this simpler version
     this.canvas.addEventListener('touchstart', (e) => {
         if (!this.state.active || this.state.paused) return;
-        touchStartX = e.touches[0].clientX;
-        lastTouchTime = Date.now();
+        const touch = e.touches[0];
+        const rect = this.canvas.getBoundingClientRect();
+        const touchX = touch.clientX - rect.left;
+        
+        this.state.player.targetX = Math.max(
+            this.config.road.leftLane,
+            Math.min(
+                touchX - this.config.player.width / 2,
+                (this.config.road.rightLane + this.config.road.laneWidth) - this.config.player.width
+            )
+        );
         e.preventDefault();
     }, { passive: false });
 
     this.canvas.addEventListener('touchmove', (e) => {
-        if (!this.state.active || this.state.paused || touchStartX === null) return;
+        if (!this.state.active || this.state.paused) return;
+        const touch = e.touches[0];
+        const rect = this.canvas.getBoundingClientRect();
+        const touchX = touch.clientX - rect.left;
         
-        const touchX = e.touches[0].clientX;
-        const deltaX = touchX - touchStartX;
-        const currentTime = Date.now();
-        
-        // Only process touch if enough movement and time has passed
-        if (Math.abs(deltaX) > touchThreshold && currentTime - lastTouchTime > 100) {
-            if (deltaX > 0) {
-                this.moveToLane(this.getCurrentLane() + 1);
-            } else {
-                this.moveToLane(this.getCurrentLane() - 1);
-            }
-            touchStartX = touchX;
-            lastTouchTime = currentTime;
-        }
+        this.state.player.targetX = Math.max(
+            this.config.road.leftLane,
+            Math.min(
+                touchX - this.config.player.width / 2,
+                (this.config.road.rightLane + this.config.road.laneWidth) - this.config.player.width
+            )
+        );
         e.preventDefault();
     }, { passive: false });
-
-    this.canvas.addEventListener('touchend', () => {
-        touchStartX = null;
-    });
-
-    // Click controls
-    this.canvas.addEventListener('click', (e) => {
-        if (!this.state.active || this.state.paused) return;
-        
-        const rect = this.canvas.getBoundingClientRect();
-        const clickX = e.clientX - rect.left;
-        
-        if (clickX < this.config.road.middleLane) {
-            this.moveToLane(0); // Left lane
-        } else if (clickX < this.config.road.rightLane) {
-            this.moveToLane(1); // Middle lane
-        } else {
-            this.moveToLane(2); // Right lane
-        }
-    });
 
     // Restart-knapp
     const startBtn = document.getElementById('startBtn');
