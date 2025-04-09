@@ -74,7 +74,7 @@ canvas {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: white;
+  background: white; 
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.3);
@@ -84,8 +84,8 @@ canvas {
 
 /* Startskjerm og meny */
 #mainTitle {
-  position: absolute;
-  top: 150px;
+  position: fixed;
+  top: 20px;
   left: 50%;
   transform: translateX(-50%);
   font-size: 3rem;
@@ -96,6 +96,21 @@ canvas {
   white-space: nowrap;
   letter-spacing: 2px;
   animation: pulse 2s infinite;
+  pointer-events: none; /* Allows clicks to pass through */
+}
+
+@media (max-height: 600px) {
+  #mainTitle {
+    font-size: 2.5rem;
+    top: 10px;
+  }
+}
+
+@media (max-height: 500px) {
+  #mainTitle {
+    font-size: 2rem;
+    top: 5px;
+  }
 }
 
 #startScreen {
@@ -106,10 +121,10 @@ canvas {
   height: 100%;
   display: flex;
   flex-direction: column;
-  align-items: center;
   justify-content: center;
-  text-align: center;
+  align-items: center;
   z-index: 1000;
+  padding-top: 80px; /* Reduced padding to leave room for content */
 }
 
 #startTitle {
@@ -128,6 +143,9 @@ canvas {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  margin-bottom: 2.5rem;
+  width: 80%;
+  max-width: 400px;
 }
 
 .menuPanel button {
@@ -147,25 +165,163 @@ canvas {
   z-index: 1002;
 }
 
+.menuPanel button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+}
+
 .menuPanel button:active {
   transform: scale(0.95);
 }
 
-.poof-particle {
-  position: absolute;
-  font-size: 20px;
-  animation: poof 0.6s ease-out forwards;
-  will-change: transform, opacity;
+/* Start button styling - enhanced */
+#startButton {
+  background: linear-gradient(45deg, #e53935, #ff6b6b);
+  font-size: 1.8rem;
+  padding: 1.5rem 2.5rem;
+  transform: scale(1.1);
+  border-radius: 30px;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.25), 0 0 30px rgba(229, 57, 53, 0.4);
+  animation: pulse-start 2s infinite;
+  margin-bottom: 2rem;
+  position: relative;
+  overflow: hidden;
 }
 
-@keyframes poof {
-  from {
-    opacity: 1;
-    transform: scale(1) translate(0, 0);
+#startButton:hover {
+  background: linear-gradient(45deg, #d32f2f, #ff5252);
+  transform: scale(1.15);
+}
+
+#startButton:active {
+  transform: scale(1.05);
+}
+
+/* Add shine effect to start button */
+#startButton:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 70%;
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: skewX(-25deg);
+  animation: shine 3s infinite;
+}
+
+@keyframes shine {
+  0% { left: -100%; }
+  20% { left: 100%; }
+  100% { left: 100%; }
+}
+
+@keyframes pulse-start {
+  0% { box-shadow: 0 10px 20px rgba(0,0,0,0.25), 0 0 30px rgba(229, 57, 53, 0.4); }
+  50% { box-shadow: 0 15px 30px rgba(0,0,0,0.3), 0 0 40px rgba(229, 57, 53, 0.6); }
+  100% { box-shadow: 0 10px 20px rgba(0,0,0,0.25), 0 0 30px rgba(229, 57, 53, 0.4); }
+}
+
+/* Info buttons container styling */
+.infoButtons {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 1rem;
+  position: relative;
+  width: 80%;
+  max-width: 400px;
+}
+
+.infoButtons button {
+  width: 45%;
+  max-width: 180px;
+  background: linear-gradient(45deg, #42a5f5, #64b5f6);
+  font-size: 1rem;
+  padding: 0.8rem 1.5rem;
+  border: none;
+  color: white;
+  font-weight: bold;
+  border-radius: 20px; /* Matching the other buttons */
+  cursor: pointer;
+  box-shadow: 0 6px 10px rgba(0,0,0,0.15);
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+  transition: transform 0.1s, box-shadow 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.infoButtons button:hover {
+  background: linear-gradient(45deg, #2196f3, #42a5f5);
+  transform: scale(1.05);
+  box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+}
+
+.infoButtons button:active {
+  transform: scale(0.95);
+}
+
+/* Add a subtle animation for non-start buttons */
+#soberButton, #settingsButton {
+  position: relative;
+  overflow: hidden;
+}
+
+#soberButton:before, #settingsButton:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: skewX(-25deg);
+  transition: left 0.8s ease-out;
+}
+
+#soberButton:hover:before, #settingsButton:hover:before {
+  left: 100%;
+  transition: left 0.8s ease-out;
+}
+
+/* Ensure all modal buttons have consistent styling */
+#aboutModal button, #settingsMenu button, #soberModal button {
+  border-radius: 20px;
+  transition: transform 0.1s, box-shadow 0.3s;
+}
+
+#aboutModal button:hover, #settingsMenu button:hover, #soberModal button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.3);
+}
+
+#aboutModal button:active, #settingsMenu button:active, #soberModal button:active {
+  transform: scale(0.95);
+}
+
+/* Media query for very small screens */
+@media (max-height: 480px) {
+  #startScreen {
+    padding-top: 60px;
   }
-  to {
-    opacity: 0;
-    transform: scale(1.5) translate(var(--dx), var(--dy));
+  
+  .menuPanel {
+    gap: 0.7rem;
+    margin-bottom: 1rem;
+  }
+  
+  .infoButtons {
+    margin-top: 0;
   }
 }
 
@@ -234,4 +390,14 @@ canvas {
   width: 60px;
   padding: 0.2rem;
   text-align: center;
+}
+
+/* Add this style for the disclaimer text */
+.button-disclaimer {
+  display: block;
+  font-size: 0.7rem;
+  margin-top: 0.2rem;
+  font-weight: normal;
+  opacity: 0.8;
+  text-shadow: none;
 }
