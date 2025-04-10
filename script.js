@@ -25,12 +25,12 @@ class Game {
         // Sett opp tid for delta-beregning
         this.lastUpdateTime = Date.now();
 
-        // Spillkonfigurasjon
+        // Spillkonfigurasjon - Position road more to the left to center properly
         this.config = {
             road: {
-                leftLane: this.canvas.width * 0.10,
-                middleLane: this.canvas.width * 0.35,
-                rightLane: this.canvas.width * 0.60,
+                leftLane: this.canvas.width * 0.125, // Adjusted to center better
+                middleLane: this.canvas.width * 0.375, // Adjusted to center better
+                rightLane: this.canvas.width * 0.625, // Adjusted to center better
                 laneWidth: this.canvas.width * 0.25
             },
             player: {
@@ -52,9 +52,9 @@ class Game {
                     height: 50,
                     speed: 5
                 },
-                // Increased spawn rates for more frequent obstacles
-                spawnRate: 0.08,      // Increased from 0.05
-                bottleSpawnRate: 0.04 // Increased from 0.03
+                // Increased spawn rates for even more frequent obstacles
+                spawnRate: 0.15,      // Increased from 0.08
+                bottleSpawnRate: 0.06 // Increased from 0.04
             },
             effects: {
                 maxBlur: 15,
@@ -93,7 +93,8 @@ class Game {
                 startTime: 0,
                 offsetX: 0,
                 offsetY: 0
-            }
+            },
+            lastQuestionDistance: 0
         };
 
         // Image loading setup - NEW CODE ADDED HERE
@@ -123,7 +124,10 @@ class Game {
                 if (clickSound && clickSound.isLoaded()) {
                     clickSound.play();
                 }
-            }
+            },
+            menuMusic: null,
+            buttonPress: null,
+            carHonk: null
         };
         
         this.initEventListeners();
@@ -209,9 +213,10 @@ class Game {
         // Ved vindusendring
         window.addEventListener('resize', () => {
             this.resizeCanvas();
-            this.config.road.leftLane = this.canvas.width * 0.10;
-            this.config.road.middleLane = this.canvas.width * 0.35;
-            this.config.road.rightLane = this.canvas.width * 0.60;
+            // Update with new centered values
+            this.config.road.leftLane = this.canvas.width * 0.125;
+            this.config.road.middleLane = this.canvas.width * 0.375;
+            this.config.road.rightLane = this.canvas.width * 0.625;
             this.config.road.laneWidth = this.canvas.width * 0.25;
         });
 
@@ -310,6 +315,21 @@ class Game {
             }
           });
         }
+
+        const startButton = document.getElementById('startButton');
+        if (startButton) {
+            startButton.addEventListener('click', () => {
+                if (this.sounds.carHonk) this.sounds.carHonk.play();
+                // ...existing code...
+            });
+        }
+        const otherMenuButtons = document.querySelectorAll('.menuBtn:not(#startButton)');
+        otherMenuButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (this.sounds.buttonPress) this.sounds.buttonPress.play();
+                // ...existing code...
+            });
+        });
     }
 
     getCurrentLane() {
@@ -376,13 +396,26 @@ class Game {
                 case 'right': laneX = this.config.road.rightLane; break;
             }
 
-            this.state.obstacles.push({
-                type: 'car',
-                x: laneX + Math.random() * (this.config.road.laneWidth - this.config.obstacles.car.width),
-                y: -this.config.obstacles.car.height,
-                speed: this.config.obstacles.car.speed[lane],
-                lane: lane
-            });
+            // Check if there's already an obstacle in this lane that's too close
+            const safeDistance = 150; // Minimum vertical distance between obstacles in the same lane
+            let isSafeToSpawn = true;
+
+            for (let obs of this.state.obstacles) {
+                if (obs.type === 'car' && obs.lane === lane && obs.y > -safeDistance) {
+                    isSafeToSpawn = false;
+                    break;
+                }
+            }
+
+            if (isSafeToSpawn) {
+                this.state.obstacles.push({
+                    type: 'car',
+                    x: laneX + Math.random() * (this.config.road.laneWidth - this.config.obstacles.car.width),
+                    y: -this.config.obstacles.car.height,
+                    speed: this.config.obstacles.car.speed[lane],
+                    lane: lane
+                });
+            }
         }
         if (Math.random() < this.config.obstacles.bottleSpawnRate) {
             const laneX = this.config.road.leftLane + Math.random() * (this.config.road.laneWidth * 3);
@@ -487,6 +520,7 @@ class Game {
         }
     }
     update() {
+        // Skip everything while paused
         if (!this.state.active || this.state.paused) return;
         
         const now = Date.now();
@@ -554,8 +588,8 @@ class Game {
             }
         }
         
-        // Spawn new obstacles (increased from 0.08 to 0.12)
-        if (Math.random() < 0.12) {
+        // Spawn new obstacles more frequently (from 0.12 to 0.2)
+        if (Math.random() < 0.2) {
             this.spawnObstacle();
         }
         
@@ -594,12 +628,24 @@ class Game {
             }
         }
         
-        this.checkCollisions();
+        // Improved question triggering logic
+        const currentDistance = parseFloat(this.state.distance);
+        const questionInterval = 3; // Show questions every 3km
         
-        // Changed from 5 to 3 to show questions every 3km
-        if (this.state.distance % 3 < 0.1 && this.state.distance > 1 && !isNaN(this.state.distance)) {
+        // Check if we're near a 3km mark (e.g. 3, 6, 9...) and haven't asked a question recently
+        const nextQuestionPoint = Math.ceil(this.state.lastQuestionDistance / 3) * 3 + 3;
+        
+        if (currentDistance > 1 && 
+            currentDistance >= nextQuestionPoint - 0.1 && 
+            !isNaN(currentDistance) &&
+            !this.state.paused) {
+            
+            // Show the question and update the last question distance
             this.showQuestion();
+            this.state.lastQuestionDistance = currentDistance;
         }
+        
+        this.checkCollisions();
     }
 
     // Add this method inside the Game class
@@ -772,10 +818,11 @@ class Game {
 
             this.state.paused = true;
             
+            // Get elements
+            const questionPopup = document.getElementById('questionPopup');
             const questionText = document.getElementById('questionText');
             const answer1 = document.getElementById('answer1');
             const answer2 = document.getElementById('answer2');
-            const questionPopup = document.getElementById('questionPopup');
             
             if (!questionText || !answer1 || !answer2 || !questionPopup) {
                 console.error('Question UI elements not found');
@@ -783,34 +830,258 @@ class Game {
                 return;
             }
             
-            questionText.textContent = question.question;
-            answer1.textContent = question.answers[0];
-            answer2.textContent = question.answers[1];
+            // Reset popup content and styling
+            questionPopup.innerHTML = '';
+            questionPopup.style.backgroundColor = '#f8f9fa';
+            questionPopup.style.boxShadow = '0 8px 25px rgba(0,0,0,0.2)';
+            questionPopup.style.borderRadius = '20px';
+            questionPopup.style.padding = '25px';
+            questionPopup.style.transition = 'all 0.3s ease';
+            questionPopup.style.transform = 'scale(0.95)';
+            
+            // Fix positioning to be absolutely centered
+            questionPopup.style.position = 'fixed';
+            questionPopup.style.left = '50%';
+            questionPopup.style.top = '50%';
+            questionPopup.style.transform = 'translate(-50%, -50%) scale(0.95)';
+            questionPopup.style.zIndex = '1000'; // Ensure it appears above everything
+            questionPopup.style.maxWidth = '90%';
+            questionPopup.style.width = '500px'; // Fixed width for consistency
+            
+            // Create fancy header
+            const questionHeader = document.createElement('h3');
+            questionHeader.textContent = 'Trafikkspørsmål';
+            questionHeader.style.textAlign = 'center';
+            questionHeader.style.marginBottom = '15px';
+            questionHeader.style.color = '#333';
+            questionHeader.style.borderBottom = '2px dashed #ddd';
+            questionHeader.style.paddingBottom = '10px';
+            
+            // Create question element with new styling
+            const questionElement = document.createElement('p');
+            questionElement.textContent = question.question;
+            questionElement.style.fontSize = '18px';
+            questionElement.style.fontWeight = 'bold';
+            questionElement.style.marginBottom = '20px';
+            questionElement.style.padding = '10px';
+            questionElement.style.backgroundColor = '#e9f7fe';
+            questionElement.style.borderRadius = '10px';
+            questionElement.style.boxShadow = '0 2px 5px rgba(0,0,0,0.05)';
+            
+            // Create answer buttons with improved styling
+            const answerContainer = document.createElement('div');
+            answerContainer.style.display = 'flex';
+            answerContainer.style.flexDirection = 'column';
+            answerContainer.style.gap = '10px';
+            
+            const createAnswerButton = (text, index) => {
+                const button = document.createElement('button');
+                button.textContent = text;
+                button.style.padding = '12px 20px';
+                button.style.border = 'none';
+                button.style.borderRadius = '12px';
+                button.style.backgroundColor = '#e6e6fa';
+                button.style.cursor = 'pointer';
+                button.style.transition = 'all 0.2s ease';
+                button.style.fontSize = '16px';
+                button.style.fontWeight = 'bold';
+                button.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+                
+                button.onmouseover = () => {
+                    button.style.backgroundColor = '#d8d8f0';
+                    button.style.transform = 'translateY(-2px)';
+                };
+                
+                button.onmouseout = () => {
+                    button.style.backgroundColor = '#e6e6fa';
+                    button.style.transform = 'translateY(0)';
+                };
+                
+                button.onclick = () => handleAnswer(index);
+                return button;
+            };
+            
+            const answerBtn1 = createAnswerButton(question.answers[0], 0);
+            const answerBtn2 = createAnswerButton(question.answers[1], 1);
+            
+            answerContainer.appendChild(answerBtn1);
+            answerContainer.appendChild(answerBtn2);
+            
+            // Add elements to popup
+            questionPopup.appendChild(questionHeader);
+            questionPopup.appendChild(questionElement);
+            questionPopup.appendChild(answerContainer);
+            
+            // Show the popup with a nice animation
             questionPopup.style.display = 'block';
+            setTimeout(() => {
+                questionPopup.style.transform = 'translate(-50%, -50%) scale(1)';
+            }, 10);
             
             // Store reference to this for event handlers
             const self = this;
 
             const handleAnswer = (selected) => {
-                if (selected === question.correct) {
-                    self.state.player.lives = Math.min(self.state.player.lives + 1, 5);
-                } else {
-                    self.state.player.promille = Math.min(self.state.player.promille + 0.5, 10);
+                const isCorrect = (selected === question.correct);
+                
+                // Change background color based on answer
+                questionPopup.style.backgroundColor = isCorrect ? '#aaffaa' : '#ffaaaa';
+                
+                // Create result container
+                const resultContainer = document.createElement('div');
+                resultContainer.style.textAlign = 'center';
+                resultContainer.style.marginTop = '20px';
+                
+                // Add emoji with animation
+                const emoji = document.createElement('div');
+                emoji.textContent = isCorrect ? '👍' : '👎';
+                emoji.style.fontSize = '48px';
+                emoji.style.margin = '10px 0';
+                emoji.style.animation = 'bounce 0.6s';
+                
+                // Add "@keyframes bounce" style if it doesn't exist
+                if (!document.getElementById('emojiAnimationStyle')) {
+                    const style = document.createElement('style');
+                    style.id = 'emojiAnimationStyle';
+                    style.textContent = `
+                        @keyframes bounce {
+                            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+                            40% { transform: translateY(-20px); }
+                            60% { transform: translateY(-10px); }
+                        }
+                    `;
+                    document.head.appendChild(style);
                 }
-                questionPopup.style.display = 'none';
-                self.state.paused = false;
+                
+                // Create thought bubble for explanation
+                const explanationBubble = document.createElement('div');
+                explanationBubble.style.backgroundColor = 'white';
+                explanationBubble.style.borderRadius = '15px';
+                explanationBubble.style.padding = '15px';
+                explanationBubble.style.position = 'relative';
+                explanationBubble.style.marginTop = '25px';
+                explanationBubble.style.boxShadow = '0 4px 10px rgba(0,0,0,0.1)';
+                explanationBubble.style.border = '2px solid #ddd';
+                
+                // Add thought bubble "tail"
+                const bubbleTail = document.createElement('div');
+                bubbleTail.style.width = '20px';
+                bubbleTail.style.height = '20px';
+                bubbleTail.style.backgroundColor = 'white';
+                bubbleTail.style.position = 'absolute';
+                bubbleTail.style.top = '-10px';
+                bubbleTail.style.left = '50%';
+                bubbleTail.style.transform = 'translateX(-50%) rotate(45deg)';
+                bubbleTail.style.borderLeft = '2px solid #ddd';
+                bubbleTail.style.borderTop = '2px solid #ddd';
+                explanationBubble.appendChild(bubbleTail);
+                
+                // Add fact text
+                const explanationText = document.createElement('p');
+                explanationText.textContent = question.explanation || '';
+                explanationText.style.margin = '0';
+                explanationText.style.fontStyle = 'italic';
+                explanationText.style.fontSize = '16px';
+                explanationText.style.color = '#333';
+                explanationBubble.appendChild(explanationText);
+                
+                // Add "Fact" label
+                const factLabel = document.createElement('div');
+                factLabel.textContent = 'FAKTA';
+                factLabel.style.position = 'absolute';
+                factLabel.style.top = '-10px';
+                factLabel.style.right = '10px';
+                factLabel.style.backgroundColor = '#ffcc00';
+                factLabel.style.color = 'black';
+                factLabel.style.fontSize = '12px';
+                factLabel.style.fontWeight = 'bold';
+                factLabel.style.padding = '3px 8px';
+                factLabel.style.borderRadius = '10px';
+                explanationBubble.appendChild(factLabel);
+                
+                // Create countdown element
+                const countdownElement = document.createElement('p');
+                countdownElement.innerText = "Fortsetter spillet om 4 sekunder...";
+                countdownElement.style.margin = '20px 0 15px 0';
+                
+                // Create continue button
+                const continueButton = document.createElement('button');
+                continueButton.textContent = "Fortsett...";
+                continueButton.style.padding = '10px 20px';
+                continueButton.style.backgroundColor = '#4CAF50';
+                continueButton.style.color = 'white';
+                continueButton.style.border = 'none';
+                continueButton.style.borderRadius = '8px';
+                continueButton.style.cursor = 'pointer';
+                continueButton.style.fontSize = '16px';
+                continueButton.style.fontWeight = 'bold';
+                continueButton.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+                continueButton.style.transition = 'all 0.2s ease';
+                
+                continueButton.onmouseover = () => {
+                    continueButton.style.backgroundColor = '#3e8e41';
+                    continueButton.style.transform = 'translateY(-2px)';
+                };
+                
+                continueButton.onmouseout = () => {
+                    continueButton.style.backgroundColor = '#4CAF50';
+                    continueButton.style.transform = 'translateY(0)';
+                };
+                
+                // Add elements to result container
+                resultContainer.appendChild(emoji);
+                resultContainer.appendChild(explanationBubble);
+                resultContainer.appendChild(countdownElement);
+                resultContainer.appendChild(continueButton);
+                
+                // Clear answer buttons
+                answerContainer.innerHTML = '';
+                
+                // Add result container to popup
+                questionPopup.appendChild(resultContainer);
+                
+                // Setup countdown
+                let countdown = 4;
+                const timer = setInterval(() => {
+                    countdown--;
+                    if (countdown <= 0) {
+                        clearInterval(timer);
+                        closeQuestionPopup();
+                    } else {
+                        countdownElement.innerText = `Fortsetter spillet om ${countdown} sekunder...`;
+                    }
+                }, 1000);
+                
+                continueButton.onclick = () => {
+                    clearInterval(timer);
+                    closeQuestionPopup();
+                };
+                
+                function closeQuestionPopup() {
+                    // Update lives or promille before hiding
+                    if (isCorrect) {
+                        self.state.player.lives = Math.min(self.state.player.lives + 1, 5);
+                    } else {
+                        self.state.player.promille = Math.min(self.state.player.promille + 0.5, 10);
+                    }
+                    
+                    // Hide with animation
+                    questionPopup.style.transform = 'translate(-50%, -50%) scale(0.9)';
+                    questionPopup.style.opacity = '0';
+                    
+                    setTimeout(() => {
+                        questionPopup.style.display = 'none';
+                        questionPopup.style.opacity = '1';
+                        // Clear popup to prevent duplicate elements
+                        questionPopup.innerHTML = '';
+                        // Make sure to unpause AFTER the popup is fully closed
+                        self.state.paused = false;
+                    }, 300);
+                }
             };
-
-            // Clear previous listeners to prevent duplicates
-            const oldAnswer1 = answer1.cloneNode(true);
-            const oldAnswer2 = answer2.cloneNode(true);
-            answer1.parentNode.replaceChild(oldAnswer1, answer1);
-            answer2.parentNode.replaceChild(oldAnswer2, answer2);
-            
-            oldAnswer1.onclick = () => handleAnswer(0);
-            oldAnswer2.onclick = () => handleAnswer(1);
         } catch (error) {
             console.error('Error showing question:', error);
+            // Make sure the game unpauses even if there's an error
             this.state.paused = false;
         }
     }
@@ -826,16 +1097,154 @@ class Game {
     gameOver() {
         this.state.active = false;
         
-        // Update the final distance display
-        document.getElementById('finalDistance').textContent = this.state.distance;
+        // Get the game over screen element
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        
+        // Style the game over screen to make it more cute and fancy
+        gameOverScreen.style.backgroundColor = '#f8f9fa';
+        gameOverScreen.style.borderRadius = '20px';
+        gameOverScreen.style.boxShadow = '0 10px 30px rgba(0,0,0,0.2)';
+        gameOverScreen.style.padding = '25px';
+        gameOverScreen.style.textAlign = 'center';
+        gameOverScreen.style.border = '3px solid #ff6b6b';
+        
+        // Update the final distance display with cute styling
+        const finalDistance = document.getElementById('finalDistance');
+        if (finalDistance) {
+            finalDistance.textContent = this.state.distance;
+            finalDistance.style.fontWeight = 'bold';
+            finalDistance.style.color = '#ff6b6b';
+            finalDistance.style.fontSize = '24px';
+        }
+        
+        // Style the game over title (if it exists)
+        const gameOverTitle = gameOverScreen.querySelector('h2');
+        if (gameOverTitle) {
+            gameOverTitle.style.color = '#ff6b6b';
+            gameOverTitle.style.fontWeight = 'bold';
+            gameOverTitle.style.marginBottom = '20px';
+            gameOverTitle.style.borderBottom = '2px dashed #ddd';
+            gameOverTitle.style.paddingBottom = '10px';
+        }
+        
+        // Enhance the buttons
+        const playAgainBtn = document.getElementById('playAgainBtn');
+        const backToMenuBtn = document.getElementById('backToMenuBtn');
+        
+        // Style and attach event listeners to the Play Again button
+        if (playAgainBtn) {
+            playAgainBtn.style.backgroundColor = '#4CAF50';
+            playAgainBtn.style.color = 'white';
+            playAgainBtn.style.border = 'none';
+            playAgainBtn.style.borderRadius = '12px';
+            playAgainBtn.style.padding = '12px 24px';
+            playAgainBtn.style.margin = '10px';
+            playAgainBtn.style.fontSize = '16px';
+            playAgainBtn.style.fontWeight = 'bold';
+            playAgainBtn.style.cursor = 'pointer';
+            playAgainBtn.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+            playAgainBtn.style.transition = 'all 0.2s';
+            
+            // Add hover effect
+            playAgainBtn.onmouseover = () => {
+                playAgainBtn.style.backgroundColor = '#3e8e41';
+                playAgainBtn.style.transform = 'translateY(-2px)';
+            };
+            playAgainBtn.onmouseout = () => {
+                playAgainBtn.style.backgroundColor = '#4CAF50';
+                playAgainBtn.style.transform = 'translateY(0)';
+            };
+            
+            // Add event listener right here to ensure it works
+            playAgainBtn.onclick = () => {
+                gameOverScreen.style.display = 'none';
+                this.state.active = true;
+                this.state.player.lives = 5;
+                this.state.player.promille = 0;
+                this.state.player.distance = 0;
+                this.state.obstacles = [];
+                this.state.startTime = Date.now();
+                this.state.doubleVision.active = false;
+                this.state.lastQuestionDistance = 0;
+                this.resizeCanvas();
+            };
+        }
+        
+        // Style and attach event listeners to the Back to Menu button
+        if (backToMenuBtn) {
+            backToMenuBtn.style.backgroundColor = '#ff6b6b';
+            backToMenuBtn.style.color = 'white';
+            backToMenuBtn.style.border = 'none';
+            backToMenuBtn.style.borderRadius = '12px';
+            backToMenuBtn.style.padding = '12px 24px';
+            backToMenuBtn.style.margin = '10px';
+            backToMenuBtn.style.fontSize = '16px';
+            backToMenuBtn.style.fontWeight = 'bold';
+            backToMenuBtn.style.cursor = 'pointer';
+            backToMenuBtn.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+            backToMenuBtn.style.transition = 'all 0.2s';
+            
+            // Add hover effect
+            backToMenuBtn.onmouseover = () => {
+                backToMenuBtn.style.backgroundColor = '#e74c3c';
+                backToMenuBtn.style.transform = 'translateY(-2px)';
+            };
+            backToMenuBtn.onmouseout = () => {
+                backToMenuBtn.style.backgroundColor = '#ff6b6b';
+                backToMenuBtn.style.transform = 'translateY(0)';
+            };
+            
+            // Add event listener right here to ensure it works
+            backToMenuBtn.onclick = () => {
+                gameOverScreen.style.display = 'none';
+                
+                // Back to menu mode
+                toggleGameMode(false);
+                
+                // Show main menu elements
+                document.getElementById('mainTitle').style.display = 'block';
+                document.getElementById('startScreen').style.display = 'flex';
+                
+                // Reset p5 canvas for background effects
+                if (window.p5Canvas) {
+                    window.p5Canvas.remove();
+                }
+                
+                // Re-run setup to create a new canvas and clouds
+                setTimeout(() => {
+                    setup();
+                }, 100);
+            };
+        }
+        
+        // Add a cute message
+        let cuteMessage = document.getElementById('cuteGameOverMessage');
+        if (!cuteMessage) {
+            cuteMessage = document.createElement('p');
+            cuteMessage.id = 'cuteGameOverMessage';
+            gameOverScreen.insertBefore(cuteMessage, gameOverScreen.querySelector('.buttons') || gameOverScreen.lastChild);
+        }
+        
+        // Select a random cute message
+        const messages = [
+            "Oi sann, det gikk ikke så bra! 🙈",
+            "Husk at i virkeligheten er det ingen restart-knapp! 🚗",
+            "Promille og kjøring er en farlig kombinasjon! 🚫🍺",
+            "Du klarer å kjøre mer ansvarlig enn så! 💪",
+            "Trafikksikkerhet er viktig - både i spill og virkelighet! 🛣️"
+        ];
+        cuteMessage.textContent = messages[Math.floor(Math.random() * messages.length)];
+        cuteMessage.style.fontStyle = 'italic';
+        cuteMessage.style.margin = '20px 0';
+        cuteMessage.style.color = '#666';
         
         // Show game over screen
-        document.getElementById('gameOverScreen').style.display = 'block';
+        gameOverScreen.style.display = 'block';
         
-        // Start button only appears in game over screen, not during gameplay
+        // Hide the restart button in the bottom right
         const startBtn = document.getElementById('startBtn');
         if (startBtn) {
-            startBtn.style.display = 'block';
+            startBtn.style.display = 'none';
         }
     }
 
@@ -844,6 +1253,8 @@ class Game {
         const startBtn = document.getElementById('startBtn');
         if (startBtn) {
             startBtn.style.display = 'none';
+            // Also set visibility to hidden as an extra precaution
+            startBtn.style.visibility = 'hidden';
         }
     }
 }
@@ -951,12 +1362,13 @@ function resetClouds() {
     // Cloud content options
     const emojis = ['😎', '😴', '🥰', '😮‍💨', '😂', '🗿', '🦇', '🦄', '🐼'];
     const textMessages = [
-      'never gonna give you up, never gonna let you down', 
+      'wecommended amount of wam?', 
       'sigma sigma sigmaboy', 
       'r u winning son?', 
       '!', 
       'vær ansvarlig.... bitchass', 
-      'grensa e 0.2‰'
+      'grensa e 0.2‰',
+      'bombagyatt'
     ];
     
     // Only proceed if p5 width and random functions are available
@@ -1001,10 +1413,18 @@ function draw() {
           cloud.x = -100;
           cloud.y = random(50, 200);
           // Sometimes change cloud content when it reappears
-          if (Math.random() > 0.7) {
+          if (Math.random() > 0.2) {
             const useEmoji = Math.random() > 0.5;
-            const emojis = ['😎', '😴', '🥰', '😮‍💨', '😂'];
-            const textMessages = ['tralalero tralala', 'sigma', 'r u winning son?', 'ikke fyllekjør!'];
+            const emojis = ['😎', '😴', '🥰', '😮‍💨', '😂', '🗿', '🦇', '🦄', '🐼'];
+            const textMessages = [
+              'wecommended amount of wam?', 
+              'sigma sigma sigmaboy', 
+              'r u winning son?', 
+              '!', 
+              'vær ansvarlig.... bitchass', 
+              'grensa e 0.2‰',
+              'bombagyatt'
+            ];
             cloud.face = useEmoji ? 
               emojis[Math.floor(Math.random() * emojis.length)] : 
               textMessages[Math.floor(Math.random() * textMessages.length)];
@@ -1256,26 +1676,135 @@ document.addEventListener('DOMContentLoaded', () => {
 // Define question pool before it's used
 const questionPool = [
     {
-        question: "Hva er lovlig promillegrense for førerkortinnehavere under 20 år?",
-        answers: ["0.2‰", "0.0‰"],
-        correct: 0
+        question: "Hvor mange dødsfall i trafikken knyttes årlig til ruskjøring i Norge?",
+        answers: ["Om lag 30–50 dødsfall", "Ingen dødsfall registreres"],
+        correct: 0,
+        explanation: "Offentlig statistikk viser at 30-50 dødsfall årlig involverer rus."
     },
     {
-        question: "Hva skjer ved en promille på 0.5-0.8?",
-        answers: ["Økt risikovillighet", "Nedsatt syn"],
-        correct: 0
+        question: "Hvor mye øker risikoen for en alvorlig ulykke med en promille over 1,0?",
+        answers: ["Risikoen kan bli opptil 8 ganger høyere", "Det er ingen merkbar endring"],
+        correct: 0,
+        explanation: "Ruskjøring ved promille over 1,0 gir kraftig forhøyet ulykkesrisiko."
     },
     {
-        question: "Når er du edru etter en fest?",
-        answers: ["Etter en god natts søvn", "Når promillen er 0.0"],
-        correct: 1
+        question: "Hvor stor andel av dødsulykkene i trafikken er relatert til ruspåvirket kjøring?",
+        answers: ["Over 25%", "Under 10%"],
+        correct: 0,
+        explanation: "Mer enn en av fire dødsulykker skyldes rus som medvirkende faktor."
     },
     {
-        question: "Hva risikerer man for fyllekjøring i Norge?",
-        answers: ["Kraftig bot og tap av førerkort", "Bot, tap av førerkort og fengsel"],
-        correct: 1
+        question: "Hva blir ofte konsekvensen av å bli tatt for ruskjøring i Norge?",
+        answers: ["Tap av førerkort, bøter og mulig fengsel", "Ingen alvorlige reaksjoner"],
+        correct: 0,
+        explanation: "Ruskjøring kan føre til tap av førerkort, bøter og fengsel."
+    },
+    {
+        question: "Hvorfor er sidesynet spesielt viktig under kjøring?",
+        answers: ["Det hjelper deg å registrere farer ved siden av veien", "Det har ingen praktisk betydning"],
+        correct: 0,
+        explanation: "Sidesynet hjelper deg å registrere farer ved siden av veien."
+    },
+    {
+        question: "Hva skjer med reaksjonstiden når du kjører i beruset tilstand?",
+        answers: ["Den blir betydelig lengre", "Den forblir uendret"],
+        correct: 0,
+        explanation: "Reaksjonstiden blir betydelig lengre når du er beruset."
+    },
+    {
+        question: "Kan sterke medisiner som påvirker bevisstheten gi samme straff som alkoholpåvirkning?",
+        answers: ["Ja, loven regner alt som ruskjøring", "Nei, medisiner er unntatt"],
+        correct: 0,
+        explanation: "Sterke medisiner som påvirker bevisstheten regnes som ruskjøring."
+    },
+    {
+        question: "Hvor stor del av dødsulykkene i trafikken er relatert til ruspåvirket kjøring?",
+        answers: ["En betydelig andel", "Nesten ingen"],
+        correct: 0,
+        explanation: "En betydelig andel av dødsulykkene i trafikken er relatert til ruspåvirket kjøring."
+    },
+    {
+        question: "Hva er en av de mest alvorlige effektene av ruskjøring på kjøreferdigheter?",
+        answers: ["Sterk redusert dømmekraft", "Økt årvåkenhet"],
+        correct: 0,
+        explanation: "Ruskjøring fører til sterkt redusert dømmekraft."
+    },
+    {
+        question: "Hvorfor tar mange ruskjørere feil avgjørelser i kritiske situasjoner?",
+        answers: ["Alkohol og rusmidler svekker hjernens reaksjonsevne", "De blir alltid flinkere av rus"],
+        correct: 0,
+        explanation: "Alkohol og rusmidler svekker hjernens reaksjonsevne."
+    },
+    {
+        question: "Hva er den tryggeste promillenivået for å kjøre bil?",
+        answers: ["0.0 – ingen rus i det hele tatt", "Rett under lovlig grense er helt greit"],
+        correct: 0,
+        explanation: "Den tryggeste promillenivået for å kjøre bil er 0.0 – ingen rus i det hele tatt."
     }
 ];
+
+questionPool.push(
+  {
+    question: "Hvordan kan et rusmiddel svekke evnen din til å vurdere risiko?",
+    answers: ["Det gjør deg mer uforsiktig", "Det gjør deg mer forsiktig"],
+    correct: 0,
+    explanation: "Unge førere under påvirkning av rus tar ofte større sjanser i trafikken."
+  },
+  {
+    question: "Hvorfor er reaksjonstiden spesielt kritisk for unge, ferske sjåfører?",
+    answers: ["De har mindre erfaring", "De har bedre reflekser enn de fleste"],
+    correct: 0,
+    explanation: "Uerfarne sjåfører trenger rask reaksjon, og rus svekker den ytterligere."
+  },
+  {
+    question: "Hvilken faktor gjør ruskjøring ekstra farlig for personer mellom 16-20 år?",
+    answers: ["Lite kjøreerfaring", "At de kjører saktere enn eldre"],
+    correct: 0,
+    explanation: "Manglende erfaring pluss rusmidler kan gi alvorlige konsekvenser."
+  },
+  {
+    question: "Hva kan bli en sosial konsekvens av å bli tatt for ruskjøring i ung alder?",
+    answers: ["Tap av venner og dårlig rykte", "Ingen sosial endring"],
+    correct: 0,
+    explanation: "Mange opplever å miste både tillit og relasjoner etter ruskjøring."
+  },
+  {
+    question: "Hvorfor er kombinasjonen av høy fart og rus ofte forbundet med unge trafikanter?",
+    answers: ["Følelse av udødelighet", "De kjører alltid lovlig"],
+    correct: 0,
+    explanation: "Unge tar ofte sjanser og undervurderer risikoen, noe rus forsterker."
+  },
+  {
+    question: "Kan tilsynelatende 'milde' rusmidler som cannabis påvirke kjøring?",
+    answers: ["Ja, de kan svekke koordinasjon og reaksjonsevne", "Nei, det er ufarlig"],
+    correct: 0,
+    explanation: "Cannabis kan blant annet forringe tidsoppfattelse og konsentrasjon."
+  },
+  {
+    question: "Hvor mye øker risikoen for ulykke når unge kombinerer festkjøring og kjøreerfaring under 2 år?",
+    answers: ["Den kan mangedobles", "Ingen økning"],
+    correct: 0,
+    explanation: "Lite kjøreerfaring pluss rusmidler øker ulykkesfaren dramatisk."
+  },
+  {
+    question: "Hva kan langvarige konsekvenser av et ruskjøringsgebyr eller fengselsdom være for unge?",
+    answers: ["Begrensede jobbmuligheter", "Ingen effekt på fremtiden"],
+    correct: 0,
+    explanation: "Et rulleblad kan hindre både jobb, studier og reiser."
+  },
+  {
+    question: "Hvorfor er holdningsendringer blant unge så viktige for trafikksikkerhet?",
+    answers: ["De forhindrer at dårlige vaner etableres", "De har ingen effekt"],
+    correct: 0,
+    explanation: "Positive holdninger forebygger risikofylt atferd, spesielt i ung alder."
+  },
+  {
+    question: "Hvordan kan venner påvirke din beslutning om å ikke kjøre i rus?",
+    answers: ["De kan motivere deg til å være ansvarlig", "Venner har ingen innflytelse"],
+    correct: 0,
+    explanation: "Gruppepress kan være positivt om vennene støtter forsvarlig kjøring."
+  }
+);
 
 // In your setup or initialization code
 function initMenuMusic() {
@@ -1285,6 +1814,12 @@ function initMenuMusic() {
       menuMusic.setVolume(0.5);
       menuMusic.play();
     });
+    this.sounds.menuMusic = loadSound('sounds/menuMusic.mp3', () => {
+        this.sounds.menuMusic.setLoop(true);
+        this.sounds.menuMusic.play();
+    });
+    this.sounds.buttonPress = loadSound('sounds/button-press.mp3');
+    this.sounds.carHonk = loadSound('sounds/car-honk.mp3');
   } catch (error) {
     console.error('Error loading menu music:', error);
   }

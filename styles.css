@@ -181,6 +181,21 @@ canvas {
   display: none;
   z-index: 1000;
   pointer-events: auto;
+  border: 4px dashed #ffccff;
+  background: linear-gradient(135deg, #FFF5FF, #FFE6FF);
+  font-family: 'Comic Sans MS', cursive;
+  font-size: 1.1rem;
+  max-width: 350px;
+}
+
+.question-popup-correct {
+  background: linear-gradient(135deg, #b0ffb0, #98ff98);
+  border: 2px solid #50c050;
+}
+
+.question-popup-wrong {
+  background: linear-gradient(135deg, #ffb0b0, #ff9898);
+  border: 2px solid #c05050;
 }
 
 #questionText {
@@ -253,6 +268,9 @@ canvas {
   cursor: pointer;
   box-shadow: 0 6px 10px rgba(0,0,0,0.15);
   color: white;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
 }
 
 #playAgainBtn {
@@ -261,6 +279,29 @@ canvas {
 
 #backToMenuBtn {
   background: linear-gradient(135deg, #42a5f5, #2196f3);
+}
+
+#playAgainBtn::after, #backToMenuBtn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.1);
+  z-index: -1;
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+}
+
+#playAgainBtn:hover::after, #backToMenuBtn:hover::after {
+  transform: translateY(0);
+}
+
+/* Make sure buttons are definitely clickable */
+#playAgainBtn, #backToMenuBtn {
+  pointer-events: auto !important;
+  cursor: pointer !important;
 }
 
 /* Modals */
