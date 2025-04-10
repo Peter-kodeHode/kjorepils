@@ -2,7 +2,7 @@ body {
   margin: 0;
   padding: 0;
   overflow: hidden;
-  font-family: 'Comic Sans MS', cursive;
+  font-family: 'Comic Sans MS';
   touch-action: manipulation;
   background: #fff0f5;
 }
