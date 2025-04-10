@@ -15,24 +15,28 @@ canvas {
   z-index: 1;
 }
 
-/* Enhanced main title */
+/* --- Hovedtittel med glitch-effekt --- */
 #mainTitle {
   position: fixed;
-  top: 10%;
+  top: 5%;
   left: 50%;
   transform: translateX(-50%);
   font-size: 4rem;
   color: #e53935;
   font-weight: bold;
-  text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
-  z-index: 100;
-  animation: pulse-title 2s infinite;
+  z-index: 101;
+  animation: glitch 1s infinite;
+  text-shadow: 2px 2px #fff;
+  white-space: nowrap; /* Keep the title on one line */
 }
 
-@keyframes pulse-title {
-  0% { transform: translateX(-50%) scale(1); }
-  50% { transform: translateX(-50%) scale(1.05); }
-  100% { transform: translateX(-50%) scale(1); }
+@keyframes glitch {
+  0% { text-shadow: 2px 2px #fff; }
+  20% { text-shadow: -2px 2px #ff00ff, 2px -2px #00ffff; }
+  40% { text-shadow: 2px 2px #fff; }
+  60% { text-shadow: -2px -2px #ff00ff, 2px 2px #00ffff; }
+  80% { text-shadow: 2px -2px #fff, -2px 2px #fff; }
+  100% { text-shadow: 2px 2px #fff; }
 }
 
 #startScreen {
@@ -45,7 +49,7 @@ canvas {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding-top: 80px;
+  padding-top: 120px; /* Increased padding to prevent overlap with title */
   z-index: 100;
 }
 
@@ -287,7 +291,6 @@ canvas {
 #volumeSlider {
   width: 200px;
   height: 8px;
-  -webkit-appearance: none;
   background: #ddd;
   border-radius: 4px;
   outline: none;
@@ -438,6 +441,15 @@ canvas {
   border-color: #c8faff;
 }
 
+#distanceStat .stat-icon {
+  animation: drive-car 3s ease-in-out infinite;
+}
+
+@keyframes drive-car {
+  0%, 100% { transform: translateX(-2px); }
+  50% { transform: translateX(2px) translateY(-1px); }
+}
+
 /* Lives stat styling with beating animation */
 #livesStat {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 220, 220, 0.9));
@@ -450,9 +462,9 @@ canvas {
 
 @keyframes heartbeat {
   0%, 100% { transform: scale(1); }
-  15% { transform: scale(1.2); }
+  15% { transform: scale(1.2) rotate(-1.5deg); }
   30% { transform: scale(1); }
-  45% { transform: scale(1.15); }
+  45% { transform: scale(1.15) rotate(1.5deg); }
 }
 
 /* Promille stat styling */
@@ -462,6 +474,16 @@ canvas {
   padding-bottom: 12px;
   min-width: 100px;
   position: relative;
+}
+
+#promilleStat .stat-icon {
+  animation: tilt-beer 4s ease-in-out infinite;
+}
+
+@keyframes tilt-beer {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(5deg); }
+  75% { transform: rotate(-5deg); }
 }
 
 .promille-bar-container {
@@ -513,14 +535,43 @@ canvas {
   font-weight: bold;
   color: gold;
   text-shadow: 0 0 10px rgba(0,0,0,0.5);
-  animation: milestone 2s forwards;
+  animation: milestone-enhanced 2s forwards;
   z-index: 1000;
   pointer-events: none;
 }
 
-@keyframes milestone {
-  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
-  15% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
-  80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); }
+@keyframes milestone-enhanced {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5) rotate(-10deg); }
+  15% { opacity: 1; transform: translate(-50%, -50%) scale(1.2) rotate(5deg); }
+  30% { opacity: 1; transform: translate(-50%, -50%) scale(1.1) rotate(-3deg); }
+  80% { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5) rotate(5deg); }
+}
+
+/* Mobile-friendly stats UI */
+@media (max-width: 768px) {
+  #statsContainer {
+    flex-direction: column;
+    align-items: center;
+    top: 10px;
+    right: 10px;
+    left: auto;
+    transform: none;
+    gap: 8px;
+  }
+  
+  .stat-box {
+    padding: 6px 12px;
+    width: 120px;
+    justify-content: space-between;
+    min-width: unset;
+  }
+  
+  .stat-icon {
+    font-size: 1.3rem;
+  }
+  
+  .stat-value {
+    font-size: 1.1rem;
+  }
 }
