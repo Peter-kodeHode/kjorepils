@@ -444,12 +444,13 @@ class Game {
                 if (obs.type === 'car') {
                     this.state.player.lives--;
                     
-                    // Reduced collision shake intensity for less extreme effect
+                    // Enhanced collision shake effect
                     this.state.collisionShake = {
                         active: true,
-                        intensity: 8,  // Reduced from 12
-                        duration: 400, // Reduced from 500
-                        startTime: Date.now()
+                        intensity: 10,  // Increased from 8 for more impact
+                        duration: 450,  // Slightly longer duration
+                        startTime: Date.now(),
+                        rotation: Math.random() * 0.06 - 0.03 // Add rotation effect (-3 to 3 degrees)
                     };
                     
                     // Add this after setting this.state.player.lives-- in the car collision section
@@ -458,6 +459,15 @@ class Game {
                         livesStat.style.animation = 'none';
                         livesStat.offsetHeight; // Trigger reflow to restart animation
                         livesStat.style.animation = 'bounce 0.8s, shake 0.5s';
+                    }
+                    
+                    // Add screen flash effect on collision
+                    const gameCanvas = document.getElementById('gameCanvas');
+                    if (gameCanvas) {
+                        gameCanvas.classList.add('collision-flash');
+                        setTimeout(() => {
+                            gameCanvas.classList.remove('collision-flash');
+                        }, 150);
                     }
                     
                     if (this.state.player.lives <= 0) this.gameOver();
@@ -508,13 +518,18 @@ class Game {
                 this.state.collisionShake.offsetX = 0;
                 this.state.collisionShake.offsetY = 0;
             } else {
-                // Gradually reduce the shake intensity
-                const remainingIntensity = 1 - progress;
+                // Enhanced shake pattern with directional bias based on impact
+                const remainingIntensity = 1 - Math.pow(progress, 2); // Quadratic ease-out
                 const currentIntensity = this.state.collisionShake.intensity * remainingIntensity;
                 
-                // Apply random shake offset
-                this.state.collisionShake.offsetX = (Math.random() * 2 - 1) * currentIntensity;
-                this.state.collisionShake.offsetY = (Math.random() * 2 - 1) * currentIntensity;
+                // Create a more chaotic but controlled shake pattern
+                const shakePhase = progress * 20; // Increase frequency
+                const xBias = Math.sin(shakePhase) * 0.7; // Horizontal bias component
+                const yBias = Math.cos(shakePhase * 1.3) * 0.7; // Vertical bias component with different frequency
+                
+                // Apply random component + directional bias
+                this.state.collisionShake.offsetX = (Math.random() * 0.3 + xBias) * currentIntensity;
+                this.state.collisionShake.offsetY = (Math.random() * 0.3 + yBias) * currentIntensity;
             }
         }
         
@@ -604,20 +619,39 @@ class Game {
         }
     }
 
+    // In the draw method, update the shake application:
     draw() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.ctx.save();
         
-        // Apply combined shake effects
+        // Apply combined shake effects with rotation
         let totalShakeX = this.state.shakeOffset.x;
         let totalShakeY = this.state.shakeOffset.y;
+        let rotation = 0;
         
         if (this.state.collisionShake.active) {
+            const elapsed = Date.now() - this.state.collisionShake.startTime;
+            const progress = elapsed / this.state.collisionShake.duration;
+            const easeOut = 1 - Math.pow(progress, 2); // Quadratic ease out for smoother finish
+            
             totalShakeX += this.state.collisionShake.offsetX;
             totalShakeY += this.state.collisionShake.offsetY;
+            
+            // Apply rotation with easing
+            if (this.state.collisionShake.rotation) {
+                rotation = this.state.collisionShake.rotation * easeOut * Math.sin(progress * Math.PI * 8);
+            }
         }
         
+        // Move canvas center to apply rotation properly
+        this.ctx.translate(this.canvas.width / 2, this.canvas.height / 2);
+        this.ctx.rotate(rotation);
+        this.ctx.translate(-this.canvas.width / 2, -this.canvas.height / 2);
+        
+        // Then apply the shake translation
         this.ctx.translate(totalShakeX, totalShakeY);
+        
+        // Rest of your drawing code...
         
         // Road background
         this.ctx.fillStyle = '#34495e';
@@ -852,7 +886,7 @@ function calculateBAC() {
     const bacBar = document.getElementById('bacBar');
     const bacEmoji = document.getElementById('bacEmoji');
     
-    bacResult.textContent = `Din promille er ${bac.toFixed(2)}‰`;
+    bacResult.textContent = `Din promille er ca. ${bac.toFixed(2)}‰`;
     
     // Update visual bar (max 5.0)
     const barWidth = Math.min(100, (bac / 5) * 100);
@@ -1109,7 +1143,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (startButton) {
       startButton.addEventListener('click', () => {
         try {
-          // Play car honk sound
+          // First, prevent the click sound that's triggered by the generic button handler
+          event.stopPropagation();
+          
+          // Play car honk sound before starting the game
           let carHonk = loadSound('sounds/car-honk.mp3', () => {
             carHonk.play();
           });
@@ -1125,10 +1162,8 @@ document.addEventListener('DOMContentLoaded', () => {
           // Initialize the game
           window.game = new Game();
           
-          // Play sound if available
-          if (window.game && window.game.sounds && typeof window.game.sounds.click === 'function') {
-            window.game.sounds.click();
-          }
+          // Do NOT play the regular click sound here
+          // Instead the car honk will play
           
           if (menuMusic && menuMusic.isPlaying()) {
             menuMusic.stop();
