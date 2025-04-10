@@ -18,6 +18,7 @@
         🎮 Start fyllekjøring!
         <span class="button-disclaimer">(Disclaimer: Ikke fyllekjør i virkeligheten ❤)</span>
       </button>
+      <button class="menuBtn" id="introButton">❓ Hvordan spille</button>
       <button class="menuBtn" id="soberButton">🥸 Promillekalkulator</button>
       <button class="menuBtn" id="settingsButton">⚙️ Innstillinger</button>
     </div>
@@ -128,6 +129,42 @@
     <button class="menuBtn" onclick="document.getElementById('settingsMenu').style.display='none'">Lukk</button>
   </div>
 
+  <div id="introModal">    
+    <div class="intro-section">
+      <div class="intro-icon">🚗</div>
+      <div class="intro-text">
+        <h3>Styring</h3>
+        <p>Bruk piltaster, WASD eller mus/touch for å bevege bilen mellom de tre feltene.</p>
+      </div>
+    </div>
+    
+    <div class="intro-section">
+      <div class="intro-icon">❤️</div>
+      <div class="intro-text">
+        <h3>Liv & Promille</h3>
+        <p>Du starter med 5 liv. Kollisjoner med andre biler tar bort ett liv. Flasker øker promillen din, som gjør kjøringen vanskeligere.</p>
+      </div>
+    </div>
+    
+    <div class="intro-section">
+      <div class="intro-icon">❓</div>
+      <div class="intro-text">
+        <h3>Spørsmål</h3>
+        <p>Hver 3 kilometer får du et spørsmål. Riktig svar gir deg ett ekstra liv. Feil svar øker promillen din.</p>
+      </div>
+    </div>
+    
+    <div class="intro-section">
+      <div class="intro-icon">🏆</div>
+      <div class="intro-text">
+        <h3>Mål</h3>
+        <p>Kjør så langt som mulig uten å miste alle livene dine. Høyere promille gir høyere hastighet men gjør spillet vanskeligere!</p>
+      </div>
+    </div>
+    
+    <button class="menuBtn" onclick="document.getElementById('introModal').style.display='none'">Forstått!</button>
+  </div>
+
   <!-- Spilllogikk -->
   <script src="script.js"></script>
   <script>
@@ -142,4 +179,3 @@
   </script>
 </body>
 </html>
-  

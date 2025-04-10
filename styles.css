@@ -575,3 +575,97 @@ canvas {
     font-size: 1.1rem;
   }
 }
+
+/* Introduction modal styling */
+#introModal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 2rem;
+  border-radius: 15px;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+  z-index: 1000;
+  display: none;
+  width: 90%;
+  max-width: 500px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+#introModal h2 {
+  text-align: center;
+  color: #e53935;
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+}
+
+.intro-section {
+  display: flex;
+  margin-bottom: 1.5rem;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 0.8rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: transform 0.2s;
+}
+
+.intro-section:hover {
+  transform: translateY(-3px);
+}
+
+.intro-icon {
+  font-size: 2.5rem;
+  margin-right: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(240, 240, 250, 0.9));
+  border-radius: 50%;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+  flex-shrink: 0;
+}
+
+.intro-text {
+  flex: 1;
+}
+
+.intro-text h3 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.intro-text p {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+/* Add animation for the intro modal */
+@keyframes intro-appear {
+  0% { opacity: 0; transform: translate(-50%, -60%); }
+  100% { opacity: 1; transform: translate(-50%, -50%); }
+}
+
+#introModal {
+  animation: intro-appear 0.3s forwards;
+}
+
+/* Make intro modal scrollable on mobile */
+@media (max-width: 768px) {
+  #introModal {
+    padding: 1.5rem;
+    max-height: 70vh;
+  }
+  
+  .intro-icon {
+    width: 50px;
+    height: 50px;
+    font-size: 2rem;
+  }
+}

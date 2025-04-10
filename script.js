@@ -294,6 +294,22 @@ class Game {
                 }
             });
         });
+
+        // Add this with your other button event listeners
+        const introButton = document.getElementById('introButton');
+        if (introButton) {
+          introButton.addEventListener('click', () => {
+            const introModal = document.getElementById('introModal');
+            if (introModal) {
+              introModal.style.display = 'block';
+            }
+            
+            // Play click sound if available (global function)
+            if (clickSound && typeof clickSound.play === 'function') {
+              clickSound.play();
+            }
+          });
+        }
     }
 
     getCurrentLane() {
@@ -1162,6 +1178,22 @@ document.addEventListener('DOMContentLoaded', () => {
     if (youthButton) {
       youthButton.addEventListener('click', () => {
         window.open('https://trafikksikkerhetsforeningen.no/om-ung-i-trafikken/', '_blank');
+        
+        // Play click sound if available (global function)
+        if (clickSound && typeof clickSound.play === 'function') {
+          clickSound.play();
+        }
+      });
+    }
+
+    // Add this with your other button event listeners
+    const introButton = document.getElementById('introButton');
+    if (introButton) {
+      introButton.addEventListener('click', () => {
+        const introModal = document.getElementById('introModal');
+        if (introModal) {
+          introModal.style.display = 'block';
+        }
         
         // Play click sound if available (global function)
         if (clickSound && typeof clickSound.play === 'function') {
