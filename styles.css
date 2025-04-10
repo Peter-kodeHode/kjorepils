@@ -183,7 +183,7 @@ canvas {
   pointer-events: auto;
   border: 4px dashed #ffccff;
   background: linear-gradient(135deg, #FFF5FF, #FFE6FF);
-  font-family: 'Comic Sans MS', cursive;
+  font-family: 'Comic Sans MS';
   font-size: 1.1rem;
   max-width: 350px;
 }
