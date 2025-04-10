@@ -6,6 +6,7 @@ function constrain(n, low, high) {
 // Add this at the top of your script, after variable declarations
 let clouds = [];
 let backgroundMusic, clickSound;
+let menuMusic;
 
 class Game {
     constructor() {
@@ -36,7 +37,7 @@ class Game {
                 width: 50,
                 height: 70,
                 // Hastigheten er i piksler per sekund (justeres med dt)
-                speed: 200,
+                speed: 500,
                 startY: this.canvas.height - 100,
                 maxLives: 5
             },
@@ -52,8 +53,8 @@ class Game {
                     speed: 5
                 },
                 // Increased spawn rates for more frequent obstacles
-                spawnRate: 0.05,      // Increased from 0.03
-                bottleSpawnRate: 0.03 // Increased from 0.01
+                spawnRate: 0.08,      // Increased from 0.05
+                bottleSpawnRate: 0.04 // Increased from 0.03
             },
             effects: {
                 maxBlur: 15,
@@ -522,8 +523,8 @@ class Game {
             }
         }
         
-        // Spawn new obstacles (increased from 0.05 to 0.08)
-        if (Math.random() < 0.08) {
+        // Spawn new obstacles (increased from 0.08 to 0.12)
+        if (Math.random() < 0.12) {
             this.spawnObstacle();
         }
         
@@ -898,14 +899,14 @@ function resetClouds() {
     clouds = [];
     
     // Cloud content options
-    const emojis = ['😎', '😴', '🥰', '😮‍💨', '😂'];
+    const emojis = ['😎', '😴', '🥰', '😮‍💨', '😂', '🗿', '🦇', '🦄', '🐼'];
     const textMessages = [
-      'tralalero tralala', 
-      'sigma', 
+      'never gonna give you up, never gonna let you down', 
+      'sigma sigma sigmaboy', 
       'r u winning son?', 
-      'ikke fyllekjør!', 
-      'kjør forsiktig', 
-      'promillegrense 0.2‰'
+      '!', 
+      'vær ansvarlig.... bitchass', 
+      'grensa e 0.2‰'
     ];
     
     // Only proceed if p5 width and random functions are available
@@ -1092,6 +1093,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (startButton) {
       startButton.addEventListener('click', () => {
         try {
+          // Play car honk sound
+          let carHonk = loadSound('sounds/car-honk.mp3', () => {
+            carHonk.play();
+          });
+          
           toggleGameMode(true); // Enter game mode
           
           const mainTitle = document.getElementById('mainTitle');
@@ -1106,6 +1112,10 @@ document.addEventListener('DOMContentLoaded', () => {
           // Play sound if available
           if (window.game && window.game.sounds && typeof window.game.sounds.click === 'function') {
             window.game.sounds.click();
+          }
+          
+          if (menuMusic && menuMusic.isPlaying()) {
+            menuMusic.stop();
           }
         } catch (error) {
           console.error('Error starting game:', error);
@@ -1164,6 +1174,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (typeof setup === 'function') {
       setup();
     }
+    
+    // Initialize menu music after user interaction
+    if (typeof userStartAudio === 'function') {
+      userStartAudio().then(() => {
+        initMenuMusic();
+      });
+    }
   } catch (error) {
     console.error('Error in DOMContentLoaded event:', error);
   }
@@ -1174,7 +1191,7 @@ const questionPool = [
     {
         question: "Hva er lovlig promillegrense for førerkortinnehavere under 20 år?",
         answers: ["0.2‰", "0.0‰"],
-        correct: 1
+        correct: 0
     },
     {
         question: "Hva skjer ved en promille på 0.5-0.8?",
@@ -1182,13 +1199,26 @@ const questionPool = [
         correct: 0
     },
     {
-        question: "Når er man edru etter en fest?",
+        question: "Når er du edru etter en fest?",
         answers: ["Etter en god natts søvn", "Når promillen er 0.0"],
         correct: 1
     },
     {
-        question: "Hva er straffen for fyllekjøring i Norge?",
-        answers: ["Bot og betinget fengsel", "Bot, fengsel og tap av førerkort"],
+        question: "Hva risikerer man for fyllekjøring i Norge?",
+        answers: ["Kraftig bot og tap av førerkort", "Bot, tap av førerkort og fengsel"],
         correct: 1
     }
 ];
+
+// In your setup or initialization code
+function initMenuMusic() {
+  try {
+    menuMusic = loadSound('sounds/relaxing-guitar-looop.mp3', () => {
+      menuMusic.setLoop(true);
+      menuMusic.setVolume(0.5);
+      menuMusic.play();
+    });
+  } catch (error) {
+    console.error('Error loading menu music:', error);
+  }
+}
