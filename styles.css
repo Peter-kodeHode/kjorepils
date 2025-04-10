@@ -18,10 +18,10 @@ canvas {
 /* --- Hovedtittel med glitch-effekt --- */
 #mainTitle {
   position: fixed;
-  top: 5%;
+  top: 15%;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 4rem;
+  font-size: 3rem;
   color: #e53935;
   font-weight: bold;
   z-index: 101;
