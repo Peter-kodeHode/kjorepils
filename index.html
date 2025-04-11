@@ -11,8 +11,11 @@
 </head>
 <body>
   <div id="loadingMessage">
-    <button class="menuBtn">Trykk her for å laste inn</button></div>
+    <button class="menuBtn">Trykk her for å laste inn</button>
+  </div>
+
   <div id="mainTitle">🚗Kjørepils🍻</div>
+
   <div id="startScreen" style="display: none;">
     <div class="menuPanel">
       <button class="menuBtn" id="startButton">
@@ -31,6 +34,7 @@
 
   <!-- Spill-canvas for Game -->
   <canvas id="gameCanvas"></canvas>
+
   <!-- Game UI-elementer -->
   <div id="gameUI">
     <div id="statsContainer">
@@ -116,7 +120,7 @@
 
   <div id="aboutModal">
     <h2>Om oss 🧑💻</h2>
-    <p>Vi e best!<br><s>>Kontakt</s> Book oss på: PEDAL@kjørepils.no</p>
+    <p>Vi e best!<br><s>Kontakt</s> Book oss på: PEDAL@kjørepils.no</p>
     <button class="menuBtn" onclick="document.getElementById('aboutModal').style.display='none'">Lukk</button>
   </div>
 
@@ -166,17 +170,7 @@
     <button class="menuBtn" onclick="document.getElementById('introModal').style.display='none'">Forstått!</button>
   </div>
 
-  <!-- Spilllogikk -->
+  <!-- Ekstern scripts -->
   <script src="script.js"></script>
-  <script>
-    if (youthButton) {
-      youthButton.addEventListener('click', () => {
-        window.open('https://www.ungitrafikken.no/');
-        if (clickSound && typeof clickSound.play === 'function') {
-          clickSound.play();
-        }
-      });
-    }
-  </script>
 </body>
 </html>
