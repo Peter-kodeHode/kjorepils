@@ -1322,50 +1322,56 @@ function calculateBAC() {
     }
 }
 
-// Modify the setup function to properly initialize p5 
 function setup() {
     try {
-      // Make sure we're in p5 instance mode
-      new p5(function(p) {
-        p.setup = function() {
-          window.p5Canvas = p.createCanvas(p.windowWidth, p.windowHeight);
-          p5Canvas.id('cloudCanvas');
-          
-          // Safely load sounds
-          try {
-            p.userStartAudio();
-            backgroundMusic = p.loadSound('sounds/relaxing-guitar-looop.mp3', checkSoundsReady);
-            clickSound = p.loadSound('sounds/button-press.mp3', checkSoundsReady);
-          } catch (e) {
-            console.error('Error loading sounds:', e);
-            document.getElementById('loadingMessage').style.display = 'none';
-            document.getElementById('startScreen').style.display = 'flex'; 
-          }
-          
-          resetClouds();
-          
-          // Position the cloud canvas
-          const canvas = document.getElementById('cloudCanvas');
-          if (canvas) {
-            canvas.style.zIndex = '0';
-            canvas.style.position = 'fixed';
-            canvas.style.top = '0';
-            canvas.style.left = '0';
-          }
-        };
-        
-        // Add draw function to p5 instance
-        p.draw = function() {
-          draw();
-        };
-        
-        // Store p5 instance globally
-        window.p5Instance = p;
-      });
+        // Check if p5 instance already exists
+        if (window.p5Instance) {
+            console.log('p5 instance already exists');
+            return;
+        }
+
+        new p5(function(p) {
+            p.setup = function() {
+                window.p5Canvas = p.createCanvas(p.windowWidth, p.windowHeight);
+                p5Canvas.id('cloudCanvas');
+                
+                // Initialize audio context only once
+                if (!window.audioInitialized) {
+                    try {
+                        p.userStartAudio().then(() => {
+                            window.audioInitialized = true;
+                            // Load sounds only after audio context is initialized
+                            backgroundMusic = p.loadSound('sounds/relaxing-guitar-looop.mp3', checkSoundsReady);
+                            clickSound = p.loadSound('sounds/button-press.mp3', checkSoundsReady);
+                        });
+                    } catch (e) {
+                        console.error('Error initializing audio:', e);
+                        document.getElementById('loadingMessage').style.display = 'none';
+                        document.getElementById('startScreen').style.display = 'flex'; 
+                    }
+                }
+                
+                resetClouds();
+                
+                const canvas = document.getElementById('cloudCanvas');
+                if (canvas) {
+                    canvas.style.zIndex = '0';
+                    canvas.style.position = 'fixed';
+                    canvas.style.top = '0';
+                    canvas.style.left = '0';
+                }
+            };
+            
+            p.draw = function() {
+                draw();
+            };
+            
+            window.p5Instance = p;
+        });
     } catch (error) {
-      console.error('Error in setup:', error);
+        console.error('Error in setup:', error);
     }
-  }
+}
 
 // Safer cloud reset function
 function resetClouds() {
@@ -1803,19 +1809,18 @@ questionPool.push(
 
 // In your setup or initialization code
 function initMenuMusic() {
-  try {
-    menuMusic = loadSound('sounds/relaxing-guitar-looop.mp3', () => {
-      menuMusic.setLoop(true);
-      menuMusic.setVolume(0.5);
-      menuMusic.play();
-    });
-    this.sounds.menuMusic = loadSound('sounds/menuMusic.mp3', () => {
-        this.sounds.menuMusic.setLoop(true);
-        this.sounds.menuMusic.play();
-    });
-    this.sounds.buttonPress = loadSound('sounds/button-press.mp3');
-    this.sounds.carHonk = loadSound('sounds/car-honk.mp3');
-  } catch (error) {
-    console.error('Error loading menu music:', error);
-  }
+    try {
+        if (!window.menuMusicInitialized) {
+            menuMusic = loadSound('sounds/relaxing-guitar-looop.mp3', () => {
+                menuMusic.setLoop(true);
+                menuMusic.setVolume(0.5);
+                menuMusic.play();
+            });
+            window.menuMusicInitialized = true;
+        }
+        
+        // Remove this.sounds assignments as they're handled in Game class
+    } catch (error) {
+        console.error('Error loading menu music:', error);
+    }
 }
