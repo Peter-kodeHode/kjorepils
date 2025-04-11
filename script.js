@@ -796,8 +796,11 @@ class Game {
             }
         }
         
+        
         // Apply blur based on promille
         this.ctx.filter = `blur(${(this.state.player.promille / 10) * this.config.effects.maxBlur}px)`;
+
+        
     }
 
     showQuestion() {
@@ -1321,37 +1324,48 @@ function calculateBAC() {
 
 // Modify the setup function to properly initialize p5 
 function setup() {
-  try {
-    // Create the p5 canvas with a specific ID
-    window.p5Canvas = createCanvas(windowWidth, windowHeight);
-    p5Canvas.id('cloudCanvas');
-    
-    // Safely load sounds
     try {
-      userStartAudio();
-      backgroundMusic = loadSound('sounds/relaxing-guitar-looop.mp3', checkSoundsReady);
-      clickSound = loadSound('sounds/button-press.mp3', checkSoundsReady);
-    } catch (e) {
-      console.error('Error loading sounds:', e);
-      // Continue without sounds if loading fails
-      document.getElementById('loadingMessage').style.display = 'none';
-      document.getElementById('startScreen').style.display = 'flex'; 
+      // Make sure we're in p5 instance mode
+      new p5(function(p) {
+        p.setup = function() {
+          window.p5Canvas = p.createCanvas(p.windowWidth, p.windowHeight);
+          p5Canvas.id('cloudCanvas');
+          
+          // Safely load sounds
+          try {
+            p.userStartAudio();
+            backgroundMusic = p.loadSound('sounds/relaxing-guitar-looop.mp3', checkSoundsReady);
+            clickSound = p.loadSound('sounds/button-press.mp3', checkSoundsReady);
+          } catch (e) {
+            console.error('Error loading sounds:', e);
+            document.getElementById('loadingMessage').style.display = 'none';
+            document.getElementById('startScreen').style.display = 'flex'; 
+          }
+          
+          resetClouds();
+          
+          // Position the cloud canvas
+          const canvas = document.getElementById('cloudCanvas');
+          if (canvas) {
+            canvas.style.zIndex = '0';
+            canvas.style.position = 'fixed';
+            canvas.style.top = '0';
+            canvas.style.left = '0';
+          }
+        };
+        
+        // Add draw function to p5 instance
+        p.draw = function() {
+          draw();
+        };
+        
+        // Store p5 instance globally
+        window.p5Instance = p;
+      });
+    } catch (error) {
+      console.error('Error in setup:', error);
     }
-    
-    resetClouds();
-    
-    // Position the cloud canvas
-    const canvas = document.getElementById('cloudCanvas');
-    if (canvas) {
-      canvas.style.zIndex = '0';
-      canvas.style.position = 'fixed';
-      canvas.style.top = '0';
-      canvas.style.left = '0';
-    }
-  } catch (error) {
-    console.error('Error in setup:', error);
   }
-}
 
 // Safer cloud reset function
 function resetClouds() {
@@ -1396,22 +1410,25 @@ function resetClouds() {
 }
 
 function draw() {
-  try {
-    clear();
-    
-    // Check if clouds array exists and has items
-    if (!clouds || clouds.length === 0) {
-      resetClouds();
-    }
+    try {
+        if (!window.p5Instance) return;
+        
+        const p = window.p5Instance;
+        p.clear();
+        
+        // Check if clouds array exists and has items
+        if (!clouds || clouds.length === 0) {
+          resetClouds();
+        }
     
     // Draw and move clouds if they exist
     if (clouds && clouds.length > 0) {
-      for (let cloud of clouds) {
-        drawCloud(cloud);
-        cloud.x += cloud.speed;
-        if (cloud.x > width + 100) {
-          cloud.x = -100;
-          cloud.y = random(50, 200);
+        for (let cloud of clouds) {
+          drawCloud(cloud);
+          cloud.x += cloud.speed;
+          if (cloud.x > p.width + 100) {
+            cloud.x = -100;
+            cloud.y = p.random(50, 200);
           // Sometimes change cloud content when it reappears
           if (Math.random() > 0.2) {
             const useEmoji = Math.random() > 0.5;
@@ -1439,59 +1456,37 @@ function draw() {
 }
 
 function drawCloud(cloud) {
-  try {
-    if (typeof noStroke !== 'function' || typeof fill !== 'function' || typeof ellipse !== 'function') {
-      console.error('P5 drawing functions not available');
-      return;
-    }
-    
-    noStroke();
-    fill(255, 255, 255, 200);
-    let s = cloud.size;
-    
-    // Check if the cloud contains text that needs extended width
-    let isTextCloud = typeof cloud.face === 'string' && cloud.face.length > 2;
-    let cloudTextWidth = 0;
-    
-    if (isTextCloud) {
-      textSize(s / 4);
-      textAlign(CENTER, CENTER);
-      // Fix: Use textWidth function directly
-      cloudTextWidth = textWidth(cloud.face);
+    try {
+      if (!window.p5Instance) return;
       
-      // Adjust cloud size based on text length
-      let baseWidth = s * 0.7;
-      let stretchFactor = Math.max(1, cloudTextWidth / baseWidth);
+      const p = window.p5Instance;
+      p.noStroke();
+      p.fill(255, 255, 255, 200);
+      let s = cloud.size;
       
-      // Draw a wider cloud for text
-      ellipse(cloud.x, cloud.y, s * 0.6 * stretchFactor, s * 0.6);
-      ellipse(cloud.x - s * 0.3 * stretchFactor, cloud.y + s * 0.1, s * 0.5, s * 0.5);
-      ellipse(cloud.x + s * 0.3 * stretchFactor, cloud.y + s * 0.1, s * 0.5, s * 0.5);
-      ellipse(cloud.x, cloud.y + s * 0.2, s * 0.7 * stretchFactor, s * 0.5);
-    } else {
-      // Standard cloud for emojis
-      ellipse(cloud.x, cloud.y, s * 0.6, s * 0.6);
-      ellipse(cloud.x - s * 0.3, cloud.y + s * 0.1, s * 0.5, s * 0.5);
-      ellipse(cloud.x + s * 0.3, cloud.y + s * 0.1, s * 0.5, s * 0.5);
-      ellipse(cloud.x, cloud.y + s * 0.2, s * 0.7, s * 0.5);
+      // Check if the cloud contains text that needs extended width
+      let isTextCloud = typeof cloud.face === 'string' && cloud.face.length > 2;
+      let cloudTextWidth = 0;
+      
+      if (isTextCloud) {
+        p.textSize(s / 4);
+        p.textAlign(p.CENTER, p.CENTER);
+        cloudTextWidth = p.textWidth(cloud.face);
+        
+        // Draw cloud shape
+        p.ellipse(cloud.x, cloud.y, s * 0.6, s * 0.6);
+        p.ellipse(cloud.x - s * 0.3, cloud.y + s * 0.1, s * 0.5, s * 0.5);
+        p.ellipse(cloud.x + s * 0.3, cloud.y + s * 0.1, s * 0.5, s * 0.5);
+        p.ellipse(cloud.x, cloud.y + s * 0.2, s * 0.7, s * 0.5);
+        
+        // Draw text
+        p.fill(0);
+        p.text(cloud.face, cloud.x, cloud.y);
+      }
+    } catch (error) {
+      console.error('Error drawing cloud:', error);
     }
-    
-    // Draw the text/emoji
-    textSize(s / 4);
-    textAlign(CENTER, CENTER);
-    
-    // Use dark text for strings, regular color for emojis
-    if (isTextCloud) {
-      fill(0, 0, 0, 220); // Dark text for better readability
-    } else {
-      fill(0); // Standard black for emojis
-    }
-    
-    text(cloud.face, cloud.x, cloud.y);
-  } catch (error) {
-    console.error('Error drawing cloud:', error);
   }
-}
 
 function checkSoundsReady() {
     // Count loaded sounds
